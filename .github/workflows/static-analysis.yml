@@ -1,0 +1,21 @@
+name: Static analysis
+
+on: [push, pull_request]
+
+jobs:
+  phpstan:
+    name: PHP ${{ matrix.php }} PHPStan
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: ["8.4"]
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+
+      - run: composer install
+      - run: composer phpstan

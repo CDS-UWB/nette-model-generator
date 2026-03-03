@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    stderr="true"
+    colors="true"
+    xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/13/phpunit.xsd"
+>
+  <testsuites>
+    <testsuite name="unit">
+        <directory>tests/Unit</directory>
+    </testsuite>
+    <testsuite name="integration-postgresql">
+        <directory>tests/Integration/PostgreSql</directory>
+    </testsuite>
+    <testsuite name="integration-mariadb">
+        <directory>tests/Integration/MySql</directory>
+    </testsuite>
+  </testsuites>
+  <source>
+    <include>
+      <directory>src</directory>
+    </include>
+  </source>
+</phpunit>

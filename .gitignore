@@ -1,0 +1,9 @@
+.env
+.phpactor.json
+composer.lock
+.php-cs-fixer.cache
+.phpunit.result.cache
+
+.idea/
+.runtime/
+vendor/

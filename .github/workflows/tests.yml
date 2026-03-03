@@ -1,0 +1,45 @@
+name: Tests
+
+on: [push, pull_request]
+
+jobs:
+  tests:
+    name: PHP ${{ matrix.php }} tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: ["8.4"]
+
+    services:
+      mariadb:
+        image: mariadb:12.2
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_USER: mariadb
+          MYSQL_PASSWORD: mariadb
+        ports:
+          - 3306:3306
+
+      postgresql:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+        ports:
+          - 5432:5432
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: xdebug, yaml, pdo_mysql, pdo_pgsql
+          coverage: xdebug
+
+      - run: |
+          composer install
+          sed -i 's/host=postgres/host=127.0.0.1/g' tests/Integration/db.yaml
+          sed -i 's/host=mariadb/host=127.0.0.1/g' tests/Integration/db.yaml
+
+      - name: Run tests
+        run: composer phpunit-ci

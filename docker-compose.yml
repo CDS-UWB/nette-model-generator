@@ -1,0 +1,34 @@
+services:
+  php:
+    container_name: model_generator
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    volumes:
+      - ./:/var/www/app
+      - /home/fifal/dev/work/cereg/celab/config:/config
+
+  postgres:
+    container_name: model_generator_postgres
+    image: postgres:17
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-model_generator}
+    volumes:
+      - .runtime/postgres:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+
+  mariadb:
+    container_name: model_generator_mariadb
+    image: mariadb:12.2
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      MYSQL_DATABASE: ${MYSQL_DB:-model_generator}
+      MYSQL_USER: ${MYSQL_USER:-mariadb}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-mariadb}
+    volumes:
+      - .runtime/mariadb:/var/lib/mysql
+    ports:
+      - "127.0.0.1:${MYSQL_PORT:-3306}:3306"

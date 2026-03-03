@@ -1,0 +1,15 @@
+database:
+  mariadb:
+    host: "mysql:host=mariadb"
+    user: mariadb
+    password: mariadb
+
+  mariadb_root:
+    host: "mysql:host=mariadb"
+    user: root
+    password: root
+
+  postgres:
+    host: "pgsql:host=postgres"
+    user: postgres
+    password: postgres
