@@ -162,6 +162,10 @@ function parseSchemas(string|null $schemas): array
  */
 function parseRootDir(string $rootDir): array
 {
+    if (str_ends_with($rootDir, '/')) {
+        $rootDir = substr($rootDir, 0, -1);
+    }
+
     return explode('/', $rootDir);
 }
 
@@ -185,12 +189,12 @@ function printHelp(): void
       Required:
         -c, --config    Path to the configuration file.
         -d, --driver    Database driver (e.g., mysql, pgsql).
+        -r, --root-dir  Root directory for generated files.
 
       Optional:
         -n, --db-name         Name of the database in the configuration file, required if you have multiple databases defined in the configuration file.
         -s, --schemas         [pgsql only] Comma-separated list of schemas to include (optional).
         -i, --include-schema  [pgsql only] Include schema name in generated class names and paths (optional).
-        -r, --root-dir        Root directory for generated files (default: app).
         -p, --namespace       Namespace for generated classes (default: App\\Model).
 
       -h, --help      Display this help message.\n
