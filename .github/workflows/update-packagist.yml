@@ -1,0 +1,22 @@
+name: Update Packagist
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Call Packagist API
+        run: |
+          REPOSITORY_URL="https://github.com/${{ github.repository }}"
+          echo "Pinging Packagist for $REPOSITORY_URL"
+          curl --fail --retry 5 \
+            -X POST \
+            -H 'content-type:application/json' \
+            -d '{"repository":{"url":"'"$REPOSITORY_URL"'"}}' \
+            "https://packagist.org/api/update-package?username=${{ secrets.PACKAGIST_USERNAME }}&apiToken=${{ secrets.PACKAGIST_API_TOKEN }}"
