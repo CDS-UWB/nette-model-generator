@@ -30,7 +30,6 @@
     "require": {
         "php": "^8.4",
         "nette/database": "^3.2",
-        "nette/neon": "^3.4",
         "nette/php-generator": "^4.2"
     },
     "require-dev": {

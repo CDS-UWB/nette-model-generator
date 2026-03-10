@@ -11,20 +11,22 @@ use Cds\NetteModelGenerator\ModelGenerator;
 use Cds\NetteModelGenerator\Psr4FileManager;
 use Cds\NetteModelGenerator\Reflections\MySqlReflection;
 use Cds\NetteModelGenerator\Reflections\PostgreSqlReflection;
-use Nette\Neon\Neon;
 
 const AllowedDrivers = ['mysql', 'pgsql'];
 
 $options = getopt(
-    short_options: 'c:d:n:s:ir:p:h',
+    short_options: 'd:n:s:ir:e:H:D:U:P:p:h',
     long_options: [
-        'config:',
         'driver:',
-        'db-name:',
         'schemas:',
         'include-schema',
         'root-dir:',
         'namespace:',
+        'host:',
+        'dbname:',
+        'user:',
+        'password:',
+        'port:',
         'help',
     ],
 );
@@ -43,14 +45,6 @@ if (!in_array($driver, AllowedDrivers, true)) {
     exit(1);
 }
 
-$configPath = $options['c'] ?? $options['config'] ?? null;
-if ($configPath === null) {
-    printError('Missing configuration file path.');
-    printHelp();
-
-    exit(1);
-}
-
 $rootDir = $options['r'] ?? $options['root-dir'] ?? null;
 if ($rootDir === null) {
     printError('Missing root directory for generated files.');
@@ -59,15 +53,44 @@ if ($rootDir === null) {
     exit(1);
 }
 
-// Load configuration from the specified file.
-$configDbName = $options['n'] ?? $options['db-name'] ?? null;
-$config = loadConfig($configPath, $configDbName);
+$host = $options['H'] ?? $options['host'] ?? null;
+if ($host === null) {
+    printError('Missing database host.');
+    printHelp();
+
+    exit(1);
+}
+
+$dbname = $options['D'] ?? $options['dbname'] ?? null;
+if ($dbname === null) {
+    printError('Missing database name.');
+    printHelp();
+
+    exit(1);
+}
+
+$user = $options['U'] ?? $options['user'] ?? null;
+if ($user === null) {
+    printError('Missing database user.');
+    printHelp();
+
+    exit(1);
+}
+
+$password = $options['P'] ?? $options['password'] ?? null;
+if ($password === null) {
+    printError('Missing database password.');
+    printHelp();
+
+    exit(1);
+}
 
 // Prepare a connection to the database.
+$port = $options['port'] ?? null;
 $connection = new Nette\Database\Connection(
-    dsn: "{$driver}:host={$config['host']};dbname={$config['dbname']}",
-    user: $config['user'],
-    password: $config['password'],
+    dsn: "{$driver}:host={$host};dbname={$dbname}" . ($port !== null ? ";port={$port}" : ''),
+    user: $user,
+    password: $password,
 );
 
 // Prepare a context for the generator.
@@ -75,17 +98,17 @@ $context = new GeneratorContext(
     reflection: match ($driver) {
         'mysql' => new MySqlReflection(
             connection: $connection,
-            dbName: $config['dbname']
+            dbName: $dbname
         ),
         'pgsql' => new PostgreSqlReflection(
             connection: $connection,
-            dbName: $config['dbname'],
+            dbName: $dbname,
             schemas: parseSchemas($options['s'] ?? $options['schemas'] ?? null)
         ),
     },
     fileManager: new Psr4FileManager(
         rootDir: parseRootDir($rootDir),
-        namespace: parseNamespace($options['p'] ?? $options['namespace'] ?? null),
+        namespace: parseNamespace($options['e'] ?? $options['namespace'] ?? null),
         includeSchema: isset($options['i']) || isset($options['include-schema']),
     ),
     fileWriter: new FileWriter(),
@@ -104,45 +127,6 @@ echo "Changed {$changed} files:\n";
 
 foreach ($files as $filePath) {
     echo "\t{$filePath}\n";
-}
-
-/**
- * @return array{host: string, dbname: string, user: string, password: string, port?: int}
- */
-function loadConfig(string $configPath, string|null $dbName): array
-{
-    if (!file_exists($configPath)) {
-        printError("Configuration file not found: {$configPath}");
-
-        exit(1);
-    }
-
-    $data = Neon::decodeFile($configPath);
-    $database = $data['database'] ?? $data['parameters']['database'] ?? null;
-
-    if ($database === null) {
-        printError('Database configuration not found in the configuration file.');
-
-        exit(1);
-    }
-
-    if (!array_key_exists('host', $database)) {
-        if ($dbName === null) {
-            printError('Database fields not found in the configuration file. If you have named database, please specify it with the -n or --db-name option.');
-
-            exit(1);
-        }
-
-        if (!array_key_exists($dbName, $database)) {
-            printError("Database '{$dbName}' not found in the configuration file.");
-
-            exit(1);
-        }
-
-        $database = $database[$dbName];
-    }
-
-    return $database;
 }
 
 /**
@@ -184,18 +168,21 @@ function parseNamespace(string|null $namespace): array
 function printHelp(): void
 {
     echo <<<HELP
-    Usage: model-generator -c <path_to_config> -d <mysql|pgsql> [optional options]
+    Usage: model-generator -d <mysql|pgsql> -H <host> -D <dbname> -U <user> -P <password> [optional options]
     Options:
       Required:
-        -c, --config    Path to the configuration file.
         -d, --driver    Database driver (e.g., mysql, pgsql).
+        -H, --host      Database host.
+        -D, --dbname    Database name.
+        -U, --user      Database user.
+        -P, --password  Database password.
         -r, --root-dir  Root directory for generated files.
 
       Optional:
-        -n, --db-name         Name of the database in the configuration file, required if you have multiple databases defined in the configuration file.
+        -p, --port            Database port.
         -s, --schemas         [pgsql only] Comma-separated list of schemas to include (optional).
         -i, --include-schema  [pgsql only] Include schema name in generated class names and paths (optional).
-        -p, --namespace       Namespace for generated classes (default: App\\Model).
+        -e, --namespace       Namespace for generated classes (default: App\\Model).
 
       -h, --help      Display this help message.\n
     HELP;
