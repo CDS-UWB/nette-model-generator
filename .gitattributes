@@ -1,0 +1,9 @@
+.github/ export-ignore
+tests/ export-ignore
+docker/ export-ignore
+
+.example.env export-ignore
+.php-cs-fixer.dist.php export-ignore
+docker-compose.yml export-ignore
+phpstan.neon export-ignore
+phpunit.xml export-ignore
