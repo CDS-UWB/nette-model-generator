@@ -1,5 +1,5 @@
 {
-    "name": "cds/nette-model-generator",
+    "name": "cds-uwb/nette-model-generator",
     "description": "Database model generator for the Nette framework.",
     "type": "library",
     "license": "MIT",
