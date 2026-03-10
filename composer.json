@@ -31,13 +31,13 @@
         "php": "^8.4",
         "nette/database": "^3.2",
         "nette/neon": "^3.4",
-        "nette/php-generator": "^4.2",
-        "phpstan/phpstan-nette": "^2",
-        "phpstan/phpstan-phpunit": "^2"
+        "nette/php-generator": "^4.2"
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.9",
         "phpstan/phpstan": "^2.1",
+        "phpstan/phpstan-nette": "^2.0",
+        "phpstan/phpstan-phpunit": "^2.0",
         "phpunit/phpunit": "^13"
     }
 }
