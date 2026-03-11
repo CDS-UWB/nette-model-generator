@@ -36,7 +36,7 @@ class ExplorerGeneratorTest extends GeneratorTestCase
 
             class Explorer extends \Nette\Database\Explorer
             {
-                private const ActiveRowNamespace = 'App\Model\Rows';
+                private const string ActiveRowNamespace = 'App\Model\Rows';
 
                 /**
                  * @param array<string|int, mixed> $data
@@ -54,16 +54,41 @@ class ExplorerGeneratorTest extends GeneratorTestCase
                     return $row;
                 }
 
-                public function tableToClass(string $tableName): string
+                protected function tableToClass(string $tableName): string
                 {
-                    $class = self::ActiveRowNamespace . '\\' . $this->snakeToPascalCase($tableName) . 'ActiveRow';
+                    $possibleClasses = $this->getPossibleClassNames($tableName);
 
-                    return class_exists($class) ? $class : ActiveRow::class;
+                    foreach ($possibleClasses as $class) {
+                        if (class_exists($class)) {
+                            return $class;
+                        }
+                    }
+
+                    return ActiveRow::class;
                 }
 
-                public function snakeToPascalCase(string $input): string
+                protected function snakeToPascalCase(string $input): string
                 {
                     return str_replace('_', '', mb_convert_case($input, MB_CASE_TITLE, 'UTF-8'));
+                }
+
+                /**
+                 * @return list<string>
+                 */
+                protected function getPossibleClassNames(string $tableName): array
+                {
+                    if (!str_contains($tableName, '.')){
+                        return [self::ActiveRowNamespace . '\\' . $this->snakeToPascalCase($tableName) . 'ActiveRow'];
+                    }
+
+                    $parts = explode('.', $tableName);
+                    $className = array_pop($parts);
+                    $classNameWithSchema = str_replace('.', '\\', $tableName);
+
+                    return [
+                        self::ActiveRowNamespace . '\\' . $this->snakeToPascalCase($classNameWithSchema) . 'ActiveRow',
+                        self::ActiveRowNamespace . '\\' . $this->snakeToPascalCase($className) . 'ActiveRow',
+                    ];
                 }
             }
 
