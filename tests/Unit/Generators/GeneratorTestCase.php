@@ -102,6 +102,15 @@ abstract class GeneratorTestCase extends TestCase
             ),
             new Column(
                 table: $table,
+                name: 'nullable_bool_column',
+                type: 'boolean',
+                primary: false,
+                nullable: true,
+                autoIncrement: false,
+                comment: 'nullable bool column comment'
+            ),
+            new Column(
+                table: $table,
                 name: 'float_column',
                 type: 'float',
                 primary: false,

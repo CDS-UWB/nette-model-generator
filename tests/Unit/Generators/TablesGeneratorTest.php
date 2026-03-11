@@ -97,7 +97,12 @@ class TablesGeneratorTest extends GeneratorTestCase
 
                 /** bool column comment */
                 public bool $boolColumn {
-                    get => $this['bool_column'];
+                    get => (bool) $this['bool_column'];
+                }
+
+                /** nullable bool column comment */
+                public bool|null $nullableBoolColumn {
+                    get => $this['nullable_bool_column'] !== null ? (bool) $this['nullable_bool_column'] : null;
                 }
 
                 /** float column comment */

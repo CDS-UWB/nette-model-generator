@@ -476,7 +476,7 @@ trait CheckResults
                 }
 
                 public bool|null $boolValue {
-                    get => $this['bool_value'];
+                    get => $this['bool_value'] !== null ? (bool) $this['bool_value'] : null;
                 }
 
                 public \DateTime|null $createdAt {

@@ -88,6 +88,18 @@ class TablesGenerator extends Generator
                 $property->addComment('@phpstan-ignore missingType.iterableValue');
             }
 
+            if ($type === 'bool') {
+                $property->addHook('get', '(bool) $this[\'' . $column->name . '\']');
+
+                continue;
+            }
+
+            if ($type === 'bool|null') {
+                $property->addHook('get', '$this[\'' . $column->name . '\'] !== null ? (bool) $this[\'' . $column->name . '\'] : null');
+
+                continue;
+            }
+
             $property->addHook('get', '$this[\'' . $column->name . '\']');
         }
 

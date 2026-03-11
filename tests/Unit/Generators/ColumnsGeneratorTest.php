@@ -45,6 +45,9 @@ class ColumnsGeneratorTest extends GeneratorTestCase
                 /** bool column comment */
                 public const BoolColumn = 'bool_column';
 
+                /** nullable bool column comment */
+                public const NullableBoolColumn = 'nullable_bool_column';
+
                 /** float column comment */
                 public const FloatColumn = 'float_column';
                 public const ColumnWithoutComment = 'column_without_comment';
