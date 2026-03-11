@@ -19,14 +19,18 @@ class Psr4FileManagerTest extends TestCase
     public function emptyRootDir(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Root directory must not be empty');
-        new Psr4FileManager([], []);
+        $this->expectExceptionMessage('Root directory must not be empty.');
+        new Psr4FileManager(rootDir: [], namespace: []);
     }
 
     #[Test]
     public function paths(): void
     {
-        $fileManager = new Psr4FileManager(['root'], ['App', 'Namespace', 'Test'], false);
+        $fileManager = new Psr4FileManager(
+            rootDir: ['root'],
+            namespace: ['App', 'Namespace', 'Test'],
+            includeSchema: false
+        );
         $table = new Table('test_table');
         $enum = new Enum('column_with_enum', ['value1', 'value2']);
 
@@ -68,7 +72,11 @@ class Psr4FileManagerTest extends TestCase
     #[Test]
     public function pathsNamespaceStartsWithRootDir(): void
     {
-        $fileManager = new Psr4FileManager(['root'], ['Root', 'Namespace', 'Test'], false);
+        $fileManager = new Psr4FileManager(
+            rootDir: ['root'],
+            namespace: ['Root', 'Namespace', 'Test'],
+            includeSchema: false
+        );
         $table = new Table('test_table');
         $enum = new Enum('column_with_enum', ['value1', 'value2']);
 
@@ -101,7 +109,11 @@ class Psr4FileManagerTest extends TestCase
     #[Test]
     public function pathsEmptyNamespace(): void
     {
-        $fileManager = new Psr4FileManager(['root'], [], false);
+        $fileManager = new Psr4FileManager(
+            rootDir: ['root'],
+            namespace: [],
+            includeSchema: false
+        );
         $table = new Table('test_table');
         $enum = new Enum('column_with_enum', ['value1', 'value2']);
 
@@ -120,9 +132,46 @@ class Psr4FileManagerTest extends TestCase
     }
 
     #[Test]
+    public function pathsNamespaceRoot(): void
+    {
+        $fileManager = new Psr4FileManager(
+            rootDir: ['root'],
+            namespace: ['App', 'Model'],
+            includeSchema: false,
+            omitNamespaceRootInPath: 'App'
+        );
+        $table = new Table('test_table');
+        $enum = new Enum('column_with_enum', ['value1', 'value2']);
+
+        $this->assertSame('root/Model/Generated/Explorer.php', $fileManager->getExplorerPath());
+        $this->assertSame('root/Model/Generated/Manager.php', $fileManager->getManagerPath());
+        $this->assertSame(
+            'root/Model/Generated/Managers/TestTableManagerBase.php',
+            $fileManager->getBaseManagerForTablePath($table)
+        );
+        $this->assertSame(
+            'root/Model/Generated/Rows/TestTableActiveRowBase.php',
+            $fileManager->getActiveRowPath($table)
+        );
+        $this->assertSame('root/Model/Generated/Enums/ColumnWithEnum.php', $fileManager->getEnumPath($enum));
+        $this->assertSame('root/Model/Generated/Columns/TestTable.php', $fileManager->getColumnsPath($table));
+
+        $this->assertSame('root/Model/Managers/ManagerBase.php', $fileManager->getBaseManagerPath());
+        $this->assertSame(
+            'root/Model/Managers/TestTableManager.php',
+            $fileManager->getUserManagerForTablePath($table)
+        );
+        $this->assertSame('root/Model/Rows/TestTableActiveRow.php', $fileManager->getUserActiveRowPath($table));
+    }
+
+    #[Test]
     public function pathsWithSchema(): void
     {
-        $fileManager = new Psr4FileManager(['root'], ['App', 'Namespace', 'Test'], true);
+        $fileManager = new Psr4FileManager(
+            rootDir: ['root'],
+            namespace: ['App', 'Namespace', 'Test'],
+            includeSchema: true
+        );
         $table = new Table('test_table', 'schema');
         $enum = new Enum('column_with_enum', ['value1', 'value2'], 'schema');
 
@@ -161,7 +210,11 @@ class Psr4FileManagerTest extends TestCase
     #[Test]
     public function names(): void
     {
-        $fileManager = new Psr4FileManager(['root'], ['App', 'Namespace', 'Test'], false);
+        $fileManager = new Psr4FileManager(
+            rootDir: ['root'],
+            namespace: ['App', 'Namespace', 'Test'],
+            includeSchema: false
+        );
         $table = new Table('test_table');
         $enum = new Enum('column_with_enum', ['value1', 'value2']);
 
@@ -201,7 +254,11 @@ class Psr4FileManagerTest extends TestCase
     #[Test]
     public function namesWithSchema(): void
     {
-        $fileManager = new Psr4FileManager(['root'], ['App', 'Namespace', 'Test'], true);
+        $fileManager = new Psr4FileManager(
+            rootDir: ['root'],
+            namespace: ['App', 'Namespace', 'Test'],
+            includeSchema: true
+        );
         $table = new Table('test_table', 'schema');
         $enum = new Enum('column_with_enum', ['value1', 'value2'], 'schema');
 
@@ -216,12 +273,11 @@ class Psr4FileManagerTest extends TestCase
             'App\Namespace\Test\Generated\Rows\Schema\TestTableActiveRowBase',
             $fileManager->getActiveRowName($table)
         );
-        // TODO: schemas...
         $this->assertSame('App\\Namespace\\Test\\Rows', $fileManager->getActiveRowNamespace());
-        //        $this->assertSame(
-        //            'App\Namespace\Test\Generated\Enums\Schema\ColumnWithEnum',
-        //            $fileManager->getEnumName($enum)
-        //        );
+        $this->assertSame(
+            'App\Namespace\Test\Generated\Enums\Schema\ColumnWithEnum',
+            $fileManager->getEnumName($enum)
+        );
         $this->assertSame(
             'App\Namespace\Test\Generated\Columns\Schema\TestTable',
             $fileManager->getColumnsName($table)
@@ -242,7 +298,11 @@ class Psr4FileManagerTest extends TestCase
     #[Test]
     public function namesWithoutNamespace(): void
     {
-        $fileManager = new Psr4FileManager(['root'], [], false);
+        $fileManager = new Psr4FileManager(
+            rootDir: ['root'],
+            namespace: [],
+            includeSchema: false
+        );
         $table = new Table('test_table');
         $enum = new Enum('column_with_enum', ['value1', 'value2']);
 
