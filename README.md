@@ -18,7 +18,7 @@ It provides utilities to generate PHP classes for database tables, columns, and 
 ## Installation
 
 ```sh
-composer require --dev cds/nette-model-generator
+composer require --dev cds-uwb/nette-model-generator
 ```
 
 ## Usage
@@ -26,20 +26,24 @@ composer require --dev cds/nette-model-generator
 ### Generating models
 Use provided `bin/model-generator` script to generate models from your database schema.
 ```text
-Usage: model-generator -c <path_to_config> -d <mysql|pgsql> [optional options]
+Usage: model-generator -d <mysql|pgsql> -H <host> -D <dbname> -U <user> -P <password> [optional options]
 Options:
   Required:
-    -c, --config    Path to the configuration file.
     -d, --driver    Database driver (e.g., mysql, pgsql).
+    -H, --host      Database host.
+    -D, --dbname    Database name.
+    -U, --user      Database user.
+    -P, --password  Database password.
+    -r, --root-dir  Root directory for generated files.
 
   Optional:
-    -n, --db-name         Name of the database in the configuration file, required if you have multiple databases defined in the configuration file.
-    -s, --schemas         [pgsql only] Comma-separated list of schemas to include (optional).
-    -i, --include-schema  [pgsql only] Include schema name in generated class names and paths (optional).
-    -r, --root-dir        Root directory for generated files (default: app).
-    -p, --namespace       Namespace for generated classes (default: App\Model).
+    -p, --port                 Database port.
+    -s, --schemas              [pgsql only] Comma-separated list of schemas to include (optional).
+    -i, --include-schema       [pgsql only] Include schema name in generated class names and paths (optional).
+    -e, --namespace            Namespace for generated classes (default: App\\Model).
+    -o, --omit-namespace-root  Namespace part ignored when generating PSR-4 structure for model (optional).
 
-  -h, --help      Display this help message.
+  -h, --help      Display this help message.\n
 ```
 #### Generated Structure
 
