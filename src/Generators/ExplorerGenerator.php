@@ -35,6 +35,7 @@ class ExplorerGenerator extends Generator
         ;
         $class->addConstant('ActiveRowNamespace', $activeRowNamespace)
             ->setPrivate()
+            ->setType('string')
         ;
 
         $class->addMethod('createActiveRow')
@@ -63,12 +64,19 @@ class ExplorerGenerator extends Generator
             ->setParameters([
                 (new Parameter('tableName'))->setType('string'),
             ])
+            ->setVisibility('protected')
             ->setReturnType('string')
             ->setBody(
                 <<<'PHP'
-                $class = self::ActiveRowNamespace . '\\' . $this->snakeToPascalCase($tableName) . 'ActiveRow';
+                $possibleClasses = $this->getPossibleClassNames($tableName);
+
+                foreach ($possibleClasses as $class) {
+                    if (class_exists($class)) {
+                        return $class;
+                    }
+                }
                 
-                return class_exists($class) ? $class : ActiveRow::class;
+                return ActiveRow::class;
                 PHP
             )
         ;
@@ -77,12 +85,38 @@ class ExplorerGenerator extends Generator
             ->setParameters([
                 (new Parameter('input'))->setType('string'),
             ])
+            ->setVisibility('protected')
             ->setReturnType('string')
             ->setBody(
                 <<<'PHP'
                 return str_replace('_', '', mb_convert_case($input, MB_CASE_TITLE, 'UTF-8'));
                 PHP
             )
+        ;
+
+        $class->addMethod('getPossibleClassNames')
+            ->setParameters([
+                (new Parameter('tableName'))->setType('string'),
+            ])
+            ->setVisibility('protected')
+            ->setReturnType('array')
+            ->setBody(
+                <<<'PHP'
+                if (!str_contains($tableName, '.')){
+                    return [self::ActiveRowNamespace . '\\' . $this->snakeToPascalCase($tableName) . 'ActiveRow'];
+                }
+
+                $parts = explode('.', $tableName);
+                $className = array_pop($parts);
+                $classNameWithSchema = str_replace('.', '\\', $tableName);
+
+                return [
+                    self::ActiveRowNamespace . '\\' . $this->snakeToPascalCase($classNameWithSchema) . 'ActiveRow',
+                    self::ActiveRowNamespace . '\\' . $this->snakeToPascalCase($className) . 'ActiveRow',
+                ];
+                PHP
+            )
+            ->addComment('@return list<string>')
         ;
 
         if ($this->writeFile($path, $file)) {
