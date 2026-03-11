@@ -17,7 +17,8 @@ readonly class Psr4FileManager implements FileManager
     public function __construct(
         private array $rootDir,
         private array $namespace,
-        private bool $includeSchema = false
+        private bool $includeSchema = false,
+        private string|null $omitNamespaceRootInPath = null
     ) {
         if (empty($rootDir)) {
             throw new \InvalidArgumentException('Root directory must not be empty.');
@@ -150,6 +151,12 @@ readonly class Psr4FileManager implements FileManager
 
     private function joinPathParts(string ...$parts): string
     {
+        $parts = array_filter(
+            array: $parts,
+            callback: static fn ($part, $index) => $index === 0 || $part !== '',
+            mode: ARRAY_FILTER_USE_BOTH
+        );
+
         return implode(DIRECTORY_SEPARATOR, $parts);
     }
 
@@ -176,7 +183,7 @@ readonly class Psr4FileManager implements FileManager
     }
 
     /**
-     * If the root directory is equal to the first namespace part, remove it from the namespace.
+     * Adjusts the namespace path based on the root directory and namespace configuration.
      *
      * @param array<string> $namespace
      *
@@ -188,6 +195,16 @@ readonly class Psr4FileManager implements FileManager
             return $namespace;
         }
 
+        // Remove root namespace from the path if specified.
+        if ($this->omitNamespaceRootInPath !== null) {
+            $namespaceStr = implode('\\', $namespace);
+            $namespaceStr = str_replace($this->omitNamespaceRootInPath, '', $namespaceStr);
+            $namespaceStr = ltrim($namespaceStr, '\\');
+
+            return explode('\\', $namespaceStr);
+        }
+
+        // Root directory name is equal to the first namespace part, remove it.
         if (strtolower($this->rootDir[count($this->rootDir) - 1]) === strtolower($this->namespace[0])) {
             return array_slice($namespace, 1);
         }
