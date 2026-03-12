@@ -60,6 +60,7 @@ app/
 │   │   │   └── {EnumName}.php
 │   │   ├── Managers/
 │   │   │   └── {TableName}ManagerBase.php
+│   │   ├── DatabaseConventions.php
 │   │   ├── Explorer.php
 │   │   └── Manager.php
 │   │   
@@ -86,6 +87,11 @@ search:
     - in: %appDir%/Model
       classes:
         - *Manager
+
+database:
+    # Not necessary, but this can prevent fails when fetching data from views without primary keys
+    # that has not been cached yet.
+    conventions: App\Model\Generated\DatabaseConventions
 ```
 
 ### Usage in code
