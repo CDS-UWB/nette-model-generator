@@ -61,22 +61,24 @@ class DatabaseConventionsGenerator extends Generator
         $class->setExtends(DiscoveredConventions::class);
         $class->getNamespace()?->addUse(DiscoveredConventions::class);
 
-        $property = $class->addConstant('PrimaryKeys', $mapping)
-            ->setType('array')
-            ->setComment('@var array<string, string>')
-            ->setVisibility('protected')
-        ;
+        if (!empty($mapping)) {
+            $property = $class->addConstant('PrimaryKeys', $mapping)
+                ->setType('array')
+                ->setComment('@var array<string, string>')
+                ->setVisibility('protected')
+            ;
 
-        $class->addMethod('getPrimary')
-            ->setPublic()
-            ->setParameters([new Parameter('table')->setType('string')])
-            ->setReturnType('string|array|null')
-            ->addBody(
-                <<<'PHP'
+            $class->addMethod('getPrimary')
+                ->setPublic()
+                ->setParameters([new Parameter('table')->setType('string')])
+                ->setReturnType('string|array|null')
+                ->addBody(
+                    <<<'PHP'
                     return self::PrimaryKeys[$table] ?? parent::getPrimary($table);
                 PHP
-            )->addComment('@return string|string[]|null')
-        ;
+                )->addComment('@return string|string[]|null')
+            ;
+        }
 
         if ($this->writeFile($filePath, $file)) {
             return [$filePath];
