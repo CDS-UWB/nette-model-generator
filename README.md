@@ -5,6 +5,7 @@
 </div>
 
 # Nette Model Generator
+[![Tests](https://github.com/CDS-UWB/nette-model-generator/actions/workflows/tests.yml/badge.svg)](https://github.com/CDS-UWB/nette-model-generator/actions/workflows/tests.yml)
 
 This project is a database model generator for the Nette Framework. 
 It provides utilities to generate PHP classes for database tables, columns, and enums, following the PSR-4 standard.
