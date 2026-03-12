@@ -16,7 +16,7 @@ class TableTest extends TestCase
     #[Test]
     public function getFullName(): void
     {
-        $tableContext = new Table('table', 'schema');
+        $tableContext = new Table('table', false, 'schema');
         $this->assertEquals('schema.table', $tableContext->getFullName());
     }
 }

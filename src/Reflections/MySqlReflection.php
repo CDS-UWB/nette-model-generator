@@ -26,11 +26,14 @@ readonly class MySqlReflection implements Reflection
     public function getTables(): Iterator
     {
         $sql = <<<'SQL'
-            SELECT table_name FROM information_schema.tables WHERE table_schema = ? AND table_type IN ('BASE TABLE', 'VIEW');
+            SELECT table_name, table_type FROM information_schema.tables WHERE table_schema = ? AND table_type IN ('BASE TABLE', 'VIEW');
         SQL;
 
         $data = $this->connection->query($sql, $this->dbName)->fetchAll();
-        $tables = array_map(static fn (Row $row) => new Table($row->table_name), $data);
+        $tables = array_map(static fn (Row $row) => new Table(
+            name: $row->table_name,
+            isView: $row->table_type === 'VIEW'
+        ), $data);
 
         return (new \ArrayObject($tables))->getIterator();
     }

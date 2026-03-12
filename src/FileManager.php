@@ -26,6 +26,8 @@ interface FileManager
 
     public function getExplorerPath(): string;
 
+    public function getDatabaseConventionsPath(): string;
+
     // Names
     public function getEnumName(Enum $enum): string;
 
@@ -46,4 +48,6 @@ interface FileManager
     public function getActiveRowNamespace(): string;
 
     public function getExplorerName(): string;
+
+    public function getDatabaseConventionsName(): string;
 }

@@ -40,7 +40,7 @@ abstract class GeneratorTestCase extends TestCase
     protected function createMysqlGeneratorContext(Closure|null $varNameSanitizer = null): GeneratorContext
     {
         $this->mysqlReflection->method('getTables')->willReturn($this->getTables());
-        $this->mysqlReflection->method('getColumns')->willReturn($this->getColumns());
+        $this->mysqlReflection->method('getColumns')->willReturnCallback(fn (Table $table) => $this->getColumns($table));
         $this->mysqlReflection->method('getTypeMapper')->willReturn(new MySqlTypeMapper($this->mysqlReflection));
 
         return new GeneratorContext(
@@ -54,14 +54,14 @@ abstract class GeneratorTestCase extends TestCase
 
     protected function getTables(): Iterator
     {
-        $data = new \ArrayObject([new Table('test_table')]);
+        $data = new \ArrayObject([new Table('test_table', false, null)]);
 
         return $data->getIterator();
     }
 
-    protected function getColumns(): Iterator
+    protected function getColumns(Table|null $table = null): Iterator
     {
-        $table = new Table('test_table');
+        $table ??= new Table('test_table', false, null);
 
         $data = new \ArrayObject([
             new Column(

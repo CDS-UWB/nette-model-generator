@@ -8,6 +8,7 @@ final readonly class Table
 {
     public function __construct(
         public string $name,
+        public bool $isView = false,
         public ?string $schema = null,
     ) {
     }
