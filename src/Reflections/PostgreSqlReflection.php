@@ -37,7 +37,8 @@ readonly class PostgreSqlReflection implements Reflection
                 -- Tables
                 SELECT
                     schemaname AS "schema",
-                    tablename AS "table_name"
+                    tablename AS "table_name",
+                    FALSE AS is_view
                 FROM pg_tables
                 LEFT JOIN pg_class ON pg_class.relname = pg_tables.tablename
                 LEFT JOIN pg_namespace ON pg_namespace.nspname = pg_tables.schemaname
@@ -46,7 +47,8 @@ readonly class PostgreSqlReflection implements Reflection
                 -- Views
                 SELECT
                     schemaname AS "schema",
-                    viewname AS "table_name"
+                    viewname AS "table_name",
+                    TRUE AS is_view
                 FROM pg_views
                 LEFT JOIN pg_class ON pg_class.relname = pg_views.viewname
                 LEFT JOIN pg_namespace ON pg_namespace.nspname = pg_views.schemaname
@@ -67,7 +69,8 @@ readonly class PostgreSqlReflection implements Reflection
         $data = $this->connection->query($sql, ...$params)->fetchAll();
         $tables = array_map(static fn (Row $row) => new Table(
             name: $row->table_name,
-            schema: $row->schema
+            schema: $row->schema,
+            isView: $row->is_view
         ), $data);
 
         return (new \ArrayObject($tables))->getIterator();

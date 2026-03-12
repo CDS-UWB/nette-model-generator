@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Cds\NetteModelGenerator;
 
 use Cds\NetteModelGenerator\Generators\ColumnsGenerator;
+use Cds\NetteModelGenerator\Generators\DatabaseConventionsGenerator;
 use Cds\NetteModelGenerator\Generators\EnumsGenerator;
 use Cds\NetteModelGenerator\Generators\ExplorerGenerator;
 use Cds\NetteModelGenerator\Generators\Generator;
@@ -43,6 +44,7 @@ final class ModelGenerator
         $this->addGenerator(new ColumnsGenerator($context));
         $this->addGenerator(new EnumsGenerator($context));
         $this->addGenerator(new ManagerGenerator($context));
+        $this->addGenerator(new DatabaseConventionsGenerator($context));
 
         return $this->run();
     }

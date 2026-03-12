@@ -50,7 +50,7 @@ class ManagerGeneratorTest extends GeneratorTestCase
     public function getTables(): Iterator
     {
         $data = new \ArrayObject([
-            new Table('test_table'),
+            new Table('test_table', false, null),
         ]);
 
         return $data->getIterator();

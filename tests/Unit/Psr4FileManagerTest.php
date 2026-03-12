@@ -31,7 +31,7 @@ class Psr4FileManagerTest extends TestCase
             namespace: ['App', 'Namespace', 'Test'],
             includeSchema: false
         );
-        $table = new Table('test_table');
+        $table = new Table('test_table', false, null);
         $enum = new Enum('column_with_enum', ['value1', 'value2']);
 
         // Generated
@@ -77,7 +77,7 @@ class Psr4FileManagerTest extends TestCase
             namespace: ['Root', 'Namespace', 'Test'],
             includeSchema: false
         );
-        $table = new Table('test_table');
+        $table = new Table('test_table', false, null);
         $enum = new Enum('column_with_enum', ['value1', 'value2']);
 
         // Generated
@@ -114,7 +114,7 @@ class Psr4FileManagerTest extends TestCase
             namespace: [],
             includeSchema: false
         );
-        $table = new Table('test_table');
+        $table = new Table('test_table', false, null);
         $enum = new Enum('column_with_enum', ['value1', 'value2']);
 
         // Generated
@@ -140,7 +140,7 @@ class Psr4FileManagerTest extends TestCase
             includeSchema: false,
             omitNamespaceRootInPath: 'App'
         );
-        $table = new Table('test_table');
+        $table = new Table('test_table', false, null);
         $enum = new Enum('column_with_enum', ['value1', 'value2']);
 
         $this->assertSame('root/Model/Generated/Explorer.php', $fileManager->getExplorerPath());
@@ -172,7 +172,7 @@ class Psr4FileManagerTest extends TestCase
             namespace: ['App', 'Namespace', 'Test'],
             includeSchema: true
         );
-        $table = new Table('test_table', 'schema');
+        $table = new Table('test_table', false, 'schema');
         $enum = new Enum('column_with_enum', ['value1', 'value2'], 'schema');
 
         // Generated
@@ -215,7 +215,7 @@ class Psr4FileManagerTest extends TestCase
             namespace: ['App', 'Namespace', 'Test'],
             includeSchema: false
         );
-        $table = new Table('test_table');
+        $table = new Table('test_table', false, null);
         $enum = new Enum('column_with_enum', ['value1', 'value2']);
 
         // Generated
@@ -259,7 +259,7 @@ class Psr4FileManagerTest extends TestCase
             namespace: ['App', 'Namespace', 'Test'],
             includeSchema: true
         );
-        $table = new Table('test_table', 'schema');
+        $table = new Table('test_table', false, 'schema');
         $enum = new Enum('column_with_enum', ['value1', 'value2'], 'schema');
 
         // Generated

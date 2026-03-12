@@ -73,6 +73,11 @@ readonly class Psr4FileManager implements FileManager
         return $this->buildPath(null, self::GeneratedName) . '/Explorer.php';
     }
 
+    public function getDatabaseConventionsPath(): string
+    {
+        return $this->buildPath(null, self::GeneratedName) . '/DatabaseConventions.php';
+    }
+
     // -------------------------------------------------------------------------
     // Names
     // -------------------------------------------------------------------------
@@ -119,6 +124,11 @@ readonly class Psr4FileManager implements FileManager
     public function getExplorerName(): string
     {
         return $this->joinNameParts(...$this->namespace, ...[self::GeneratedName, 'Explorer']);
+    }
+
+    public function getDatabaseConventionsName(): string
+    {
+        return $this->joinNameParts(...$this->namespace, ...[self::GeneratedName, 'DatabaseConventions']);
     }
 
     public function getActiveRowNamespace(): string
