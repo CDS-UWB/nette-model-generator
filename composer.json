@@ -33,6 +33,7 @@
         "nette/php-generator": "^4.2"
     },
     "require-dev": {
+        "cds-uwb/php-code-style": "^1.0",
         "friendsofphp/php-cs-fixer": "^3.9",
         "phpstan/phpstan": "^2.1",
         "phpstan/phpstan-nette": "^2.0",
