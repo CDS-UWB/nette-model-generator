@@ -6,7 +6,6 @@ services:
       dockerfile: docker/Dockerfile
     volumes:
       - ./:/var/www/app
-      - /home/fifal/dev/work/cereg/celab/config:/config
 
   postgres:
     container_name: model_generator_postgres
