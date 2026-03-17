@@ -27,8 +27,8 @@
             "Tests\\": "tests/"
         }
     },
-    "php": "^8.4",
     "require": {
+        "php": "^8.4",
         "nette/database": "^3.2",
         "nette/php-generator": "^4.2"
     },
