@@ -18,7 +18,7 @@ class Utils
         return strtolower($result[0]) . substr($result, 1);
     }
 
-    public static function sanitizeVariableName(string $name): string
+    public static function sanitizeVariableName(string $name, bool $isConstOrEnum): string
     {
         $sep = '_';
 
@@ -32,7 +32,7 @@ class Utils
         // Collapse multiple separators into one
         $result = self::replaceOrThrow('/' . preg_quote($sep, '/') . '{2,}/', $sep, $result);
 
-        $result = self::snakeToPascalCase($result);
+        $result = $isConstOrEnum ? self::snakeToPascalCase($result) : self::snakeToCamelCase($result);
 
         // If name starts with number add separator to the start
         if (preg_match('/^\d/', $result)) {

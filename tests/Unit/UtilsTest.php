@@ -78,27 +78,34 @@ class UtilsTest extends TestCase
     #[Test]
     public function sanitizeVariableNameWithValidInput(): void
     {
-        $this->assertEquals('TestName', Utils::sanitizeVariableName('test_name'));
-        $this->assertEquals('TestName', Utils::sanitizeVariableName('test-name'));
-        $this->assertEquals('UserProfile', Utils::sanitizeVariableName('user profile'));
+        $this->assertEquals('TestName', Utils::sanitizeVariableName('test_name', true));
+        $this->assertEquals('TestName', Utils::sanitizeVariableName('test-name', true));
+        $this->assertEquals('UserProfile', Utils::sanitizeVariableName('user profile', true));
     }
 
     #[Test]
     public function sanitizeVariableNameWithNumberAtStart(): void
     {
-        $this->assertEquals('_123Test', Utils::sanitizeVariableName('123_test'));
+        $this->assertEquals('_123Test', Utils::sanitizeVariableName('123_test', true));
     }
 
     #[Test]
     public function sanitizeVariableNameWithMultipleSeparators(): void
     {
-        $this->assertEquals('TestName', Utils::sanitizeVariableName('test__name'));
-        $this->assertEquals('TestName', Utils::sanitizeVariableName('test---name'));
+        $this->assertEquals('TestName', Utils::sanitizeVariableName('test__name', true));
+        $this->assertEquals('TestName', Utils::sanitizeVariableName('test---name', true));
     }
 
     #[Test]
     public function sanitizeVariableNameWithAccentedCharacters(): void
     {
-        $this->assertEquals('Cafe', Utils::sanitizeVariableName('café'));
+        $this->assertEquals('Cafe', Utils::sanitizeVariableName('café', true));
+    }
+
+    public function sanitizeVariableNameNotEnum(): void
+    {
+        $this->assertEquals('testName', Utils::sanitizeVariableName('test_name', false));
+        $this->assertEquals('testName', Utils::sanitizeVariableName('test-name', false));
+        $this->assertEquals('userProfile', Utils::sanitizeVariableName('user profile', false));
     }
 }

@@ -3,7 +3,6 @@
 namespace Cds\NetteModelGenerator\Generators;
 
 use Cds\NetteModelGenerator\Data\Table;
-use Cds\NetteModelGenerator\Utils;
 
 class ColumnsGenerator extends Generator
 {
@@ -30,10 +29,11 @@ class ColumnsGenerator extends Generator
         $file = $this->createGeneratedPhpFile();
         $class = $file->addClass($name);
 
-        $sanitizeCallback = $this->context->varNameSanitizer ?? Utils::sanitizeVariableName(...);
-
         foreach ($this->context->reflection->getColumns($table) as $column) {
-            $const = $class->addConstant($sanitizeCallback($column->name), $column->name);
+            $const = $class->addConstant(
+                name: $this->sanitizeVariable($column->name, isConstOrEnum: true),
+                value: $column->name
+            );
 
             if ($column->comment !== null) {
                 $const->setComment($column->comment);

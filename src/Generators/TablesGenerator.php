@@ -4,7 +4,7 @@ namespace Cds\NetteModelGenerator\Generators;
 
 use Cds\NetteModelGenerator\Data\Table;
 use Cds\NetteModelGenerator\GeneratorContext;
-use Cds\NetteModelGenerator\Utils;
+use Closure;
 use Nette\Database\Table\ActiveRow;
 
 class TablesGenerator extends Generator
@@ -12,9 +12,12 @@ class TablesGenerator extends Generator
     /** @var list<string> list of defined properties in the Nette\Database\Table\ActiveRow */
     protected array $activeRowProperties;
 
-    public function __construct(GeneratorContext $context)
+    /**
+     * @param Closure(string, bool): string|null $varNameSanitizer
+     */
+    public function __construct(GeneratorContext $context, Closure|null $varNameSanitizer = null)
     {
-        parent::__construct($context);
+        parent::__construct($context, $varNameSanitizer);
 
         $this->activeRowProperties = $this->getActiveRowDefinedProperties();
     }
@@ -75,7 +78,7 @@ class TablesGenerator extends Generator
             }
 
             // Some properties are already defined in Nette\Database\Table\ActiveRow
-            $name = Utils::snakeToCamelCase($column->name);
+            $name = $this->sanitizeVariable($column->name, isConstOrEnum: false);
             $name = in_array($name, $this->activeRowProperties) ? $name . '_' : $name;
 
             $property = $class->addProperty($name)->setType($type);

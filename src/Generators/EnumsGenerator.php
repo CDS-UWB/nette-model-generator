@@ -3,7 +3,6 @@
 namespace Cds\NetteModelGenerator\Generators;
 
 use Cds\NetteModelGenerator\Data\Enum;
-use Cds\NetteModelGenerator\Utils;
 use Nette\PhpGenerator\EnumCase;
 
 class EnumsGenerator extends Generator
@@ -29,13 +28,11 @@ class EnumsGenerator extends Generator
 
         $file = $this->createGeneratedPhpFile();
 
-        $sanitizeCallback = $this->context->varNameSanitizer ?? Utils::sanitizeVariableName(...);
-
         $cases = [];
 
         $enumValues = [];
         foreach ($enum->values as $value) {
-            $case = $sanitizeCallback($value);
+            $case = $this->sanitizeVariable($value, isConstOrEnum: true);
             if (in_array($case, $cases)) {
                 $this->log("WARNING: Case ({$case}) for value '{$value}' already exists. Consider using custom variable name sanitizer.");
 

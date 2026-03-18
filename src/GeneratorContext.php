@@ -10,7 +10,7 @@ use Nette\PhpGenerator\PsrPrinter;
 final readonly class GeneratorContext
 {
     /**
-     * @param Closure(string): string $varNameSanitizer
+     * @param Closure(string, bool): string $varNameSanitizer
      */
     public function __construct(
         public Reflection $reflection,

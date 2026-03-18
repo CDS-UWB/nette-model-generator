@@ -35,7 +35,7 @@ abstract class GeneratorTestCase extends TestCase
     }
 
     /**
-     * @param Closure(string): string $varNameSanitizer
+     * @param Closure(string, bool): string $varNameSanitizer
      */
     protected function createMysqlGeneratorContext(Closure|null $varNameSanitizer = null): GeneratorContext
     {
