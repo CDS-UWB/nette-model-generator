@@ -89,14 +89,14 @@ readonly class PostgreSqlReflection implements Reflection
                 CASE WHEN a.atttypmod = -1 THEN NULL ELSE a.atttypmod -4 END AS size,
                 FALSE AS unsigned,
                 NOT (a.attnotnull OR t.typtype = 'd' AND t.typnotnull) AS nullable,
-                LTRIM(pg_catalog.pg_get_expr(ad.adbin, 'pg_catalog.pg_attrdef'::regclass)::text, 'B') AS "default",
+                LTRIM(pg_catalog.pg_get_expr(ad.adbin, ad.adrelid)::text, 'B') AS "default",
                 (
                     coalesce(co.contype = 'p' AND
                     strpos(pg_catalog.pg_get_expr(ad.adbin, ad.adrelid), 'nextval') = 1, FALSE)
                 ) AS autoincrement,
                 coalesce(co.contype = 'p', FALSE) AS "primary",
                 substring(
-                    pg_catalog.pg_get_expr(ad.adbin, 'pg_catalog.pg_attrdef'::regclass)
+                    pg_catalog.pg_get_expr(ad.adbin, ad.adrelid)
                     from 'nextval[(]''\"?([^''\"]+)'
                 ) AS sequence,
                 des.description AS comment
