@@ -3,6 +3,7 @@
 namespace Cds\NetteModelGenerator\Generators;
 
 use Cds\NetteModelGenerator\Data\Table;
+use Nette\Database\ResultSet;
 use Nette\Database\Table\ActiveRow;
 use Nette\Database\Table\Selection;
 use Nette\PhpGenerator\Parameter;
@@ -50,6 +51,7 @@ class ManagerGenerator extends Generator
         $class->getNamespace()
             ?->addUse(ActiveRow::class)
             ?->addUse(Selection::class)
+            ?->addUse(ResultSet::class)
         ;
 
         $class->addMethod('__construct')
@@ -59,6 +61,25 @@ class ManagerGenerator extends Generator
                     ->setVisibility('public')
                     ->setReadOnly(),
             ])
+        ;
+
+        $class->addMethod('query')
+            ->setReturnType(ResultSet::class)
+            ->setParameters([
+                (new Parameter('sql'))->setType('string'),
+                (new Parameter('params'))->setType('mixed'),
+            ])
+            ->setVariadic()
+            ->setBody('return $this->explorer->query($sql, ...$params);')
+            ->addComment("Executes a raw SQL query and returns the result set.\n")
+            ->addComment('@param literal-string $sql')
+        ;
+
+        $class->addMethod('getTable')
+            ->setReturnType(Selection::class)
+            ->setBody('return $this->table();')
+            ->addComment("Returns the table selection.\n")
+            ->addComment('@return Selection<T>')
         ;
 
         $class->addMethod('getAll')
@@ -94,9 +115,10 @@ class ManagerGenerator extends Generator
             $manager->findWhere('name = ? AND surname ?', 'John', 'Doe');
             $manager->findWhere(['name' => 'John', 'surname' => 'Doe']);
             ```
+
             TEXT
             )
-            ->addComment('@param array<string, mixed>|string $where')
+            ->addComment("@param array<string, mixed>|string \$where \n")
             ->addComment('@return Selection<T>')
         ;
 
@@ -113,6 +135,25 @@ class ManagerGenerator extends Generator
             ->addComment('@return T|null')
         ;
 
+        $class->addMethod('getStrict')
+            ->setReturnType(ActiveRow::class)
+            ->setParameters([
+                (new Parameter('primary'))->setType('mixed'),
+            ])
+            ->setBody(<<<'PHP'
+            $row = $this->find($primary)->fetch();
+
+            if ($row === null) {
+                $this->throwStrict('Row not found', $primary);
+            }
+
+            return $row;
+            PHP)
+            ->addComment("Fetches a single row by primary key value, throws exception if not found.\n")
+            ->addComment("@return T\n")
+            ->addComment('@throws \RuntimeException')
+        ;
+
         $class->addMethod('getWhere')
             ->setReturnType(ActiveRow::class)
             ->setReturnNullable()
@@ -126,8 +167,30 @@ class ManagerGenerator extends Generator
             PHP)
             ->addComment("Fetches a single row that matches the given conditions.\n")
             ->addComment("Usage is similar to `findWhere` method.\n")
-            ->addComment('@param array<string, mixed> $where')
+            ->addComment("@param array<string, mixed> \$where \n")
             ->addComment('@return T|null')
+        ;
+
+        $class->addMethod('getWhereStrict')
+            ->setReturnType(ActiveRow::class)
+            ->setParameters([
+                (new Parameter('where'))->setType('string|array'),
+                (new Parameter('params'))->setType('mixed'),
+            ])
+            ->setVariadic()
+            ->setBody(<<<'PHP'
+            $row = $this->findWhere($where, ...$params)->limit(1)->fetch();
+
+            if ($row === null) {
+                $this->throwStrict('Row not found', $where);
+            }
+
+            return $row;
+            PHP)
+            ->addComment("Fetches a single row that matches the given conditions, throws exception if not found.\n")
+            ->addComment("@param array<string, mixed> \$where \n")
+            ->addComment("@return T\n")
+            ->addComment('@throws \RuntimeException')
         ;
 
         $class->addMethod('insert')
@@ -142,7 +205,7 @@ class ManagerGenerator extends Generator
             return $data;
             PHP)
             ->addComment("Inserts a single row into the table and returns the record.\n")
-            ->addComment('@param array<string, mixed> $data')
+            ->addComment("@param array<string, mixed> \$data \n")
             ->addComment('@return T')
         ;
 
@@ -158,7 +221,7 @@ class ManagerGenerator extends Generator
             return $data;
             PHP)
             ->addComment("Inserts multiple rows into the table and returns the first ActiveRow if table has primary key, or original input data if table doesn't have primary key.\n")
-            ->addComment('@param iterable<array<string, mixed>> $data')
+            ->addComment("@param iterable<array<string, mixed>> \$data \n")
             ->addComment('@return T|iterable<array<string, mixed>>')
         ;
 
@@ -183,7 +246,7 @@ class ManagerGenerator extends Generator
             ->setVariadic()
             ->setBody('return $this->findWhere($where, ...$params)->update($data);')
             ->addComment("Updates rows that match the given conditions.\nUsage is similar to `findWhere` method.\n")
-            ->addComment('@param array<string, mixed>|string $where')
+            ->addComment("@param array<string, mixed>|string \$where \n")
             ->addComment('@param array<string, mixed> $data')
         ;
 
@@ -216,7 +279,7 @@ class ManagerGenerator extends Generator
             ->setVariadic()
             ->setBody('return $this->findWhere($where, ...$params)->delete();')
             ->addComment("Deletes rows that match the given conditions.\nUsage is similar to `findWhere` method.\n")
-            ->addComment('@param array<string, mixed>|string $where')
+            ->addComment("@param array<string, mixed>|string \$where \n")
             ->addComment('@return int Number of affected rows')
         ;
 
@@ -225,6 +288,18 @@ class ManagerGenerator extends Generator
             ->setBody('return $this->table()->delete();')
             ->addComment("Deletes all rows in the table.\n")
             ->addComment('@return int Number of affected rows')
+        ;
+
+        $class->addMethod('fetchPairs')
+            ->setReturnType('array')
+            ->setParameters([
+                (new Parameter('key'))->setType('string|\Closure|int|null')->setDefaultValue(null),
+                (new Parameter('value'))->setType('string|int|null')->setDefaultValue(null),
+            ])
+            ->setBody('return $this->getAll()->fetchPairs($key, $value);')
+            ->addComment("Fetches pairs of key and value from the table.\n")
+            ->addComment("@param string|\\Closure(T): array{0: mixed, 1?: mixed}|int|null \$key\n")
+            ->addComment('@return array<string, mixed>')
         ;
 
         $class->addMethod('transaction')
@@ -253,6 +328,18 @@ class ManagerGenerator extends Generator
             ->setReturnType('void')
             ->setBody('$this->explorer->rollBack();')
             ->addComment("Rolls back a transaction.\n")
+        ;
+
+        $class->addMethod('throwStrict')
+            ->setReturnType('never')
+            ->setParameters([
+                (new Parameter('message'))->setType('string'),
+                (new Parameter('context'))->setType('mixed'),
+            ])
+            ->setBody('throw new \RuntimeException($message . \'(\' . var_export($context, true) . \')\');')
+            ->addComment("Throws an exception with a message and context information.\n")
+            ->addComment("@throws \\RuntimeException\n")
+            ->setVisibility('protected')
         ;
 
         $class->addMethod('getTableName')

@@ -158,6 +158,7 @@ class ManagerGeneratorTest extends GeneratorTestCase
 
             namespace App\Model\Generated;
 
+            use Nette\Database\ResultSet;
             use Nette\Database\Table\ActiveRow;
             use Nette\Database\Table\Selection;
 
@@ -171,6 +172,26 @@ class ManagerGeneratorTest extends GeneratorTestCase
                 public function __construct(
                     public readonly Explorer $explorer,
                 ) {
+                }
+
+                /**
+                 * Executes a raw SQL query and returns the result set.
+                 *
+                 * @param literal-string $sql
+                 */
+                public function query(string $sql, mixed ...$params): ResultSet
+                {
+                    return $this->explorer->query($sql, ...$params);
+                }
+
+                /**
+                 * Returns the table selection.
+                 *
+                 * @return Selection<T>
+                 */
+                public function getTable(): Selection
+                {
+                    return $this->table();
                 }
 
                 /**
@@ -201,7 +222,9 @@ class ManagerGeneratorTest extends GeneratorTestCase
                  * $manager->findWhere('name = ? AND surname ?', 'John', 'Doe');
                  * $manager->findWhere(['name' => 'John', 'surname' => 'Doe']);
                  * ```
+                 *
                  * @param array<string, mixed>|string $where
+                 *
                  * @return Selection<T>
                  */
                 public function findWhere(string|array $where, mixed ...$params): Selection
@@ -220,11 +243,30 @@ class ManagerGeneratorTest extends GeneratorTestCase
                 }
 
                 /**
+                 * Fetches a single row by primary key value, throws exception if not found.
+                 *
+                 * @return T
+                 *
+                 * @throws \RuntimeException
+                 */
+                public function getStrict(mixed $primary): ActiveRow
+                {
+                    $row = $this->find($primary)->fetch();
+
+                    if ($row === null) {
+                        $this->throwStrict('Row not found', $primary);
+                    }
+
+                    return $row;
+                }
+
+                /**
                  * Fetches a single row that matches the given conditions.
                  *
                  * Usage is similar to `findWhere` method.
                  *
                  * @param array<string, mixed> $where
+                 *
                  * @return T|null
                  */
                 public function getWhere(string|array $where, mixed ...$params): ?ActiveRow
@@ -233,9 +275,30 @@ class ManagerGeneratorTest extends GeneratorTestCase
                 }
 
                 /**
+                 * Fetches a single row that matches the given conditions, throws exception if not found.
+                 *
+                 * @param array<string, mixed> $where
+                 *
+                 * @return T
+                 *
+                 * @throws \RuntimeException
+                 */
+                public function getWhereStrict(string|array $where, mixed ...$params): ActiveRow
+                {
+                    $row = $this->findWhere($where, ...$params)->limit(1)->fetch();
+
+                    if ($row === null) {
+                        $this->throwStrict('Row not found', $where);
+                    }
+
+                    return $row;
+                }
+
+                /**
                  * Inserts a single row into the table and returns the record.
                  *
                  * @param array<string, mixed> $data
+                 *
                  * @return T
                  */
                 public function insert(array $data): ActiveRow
@@ -250,6 +313,7 @@ class ManagerGeneratorTest extends GeneratorTestCase
                  * Inserts multiple rows into the table and returns the first ActiveRow if table has primary key, or original input data if table doesn't have primary key.
                  *
                  * @param iterable<array<string, mixed>> $data
+                 *
                  * @return T|iterable<array<string, mixed>>
                  */
                 public function insertMultiple(iterable $data): ActiveRow|iterable
@@ -275,6 +339,7 @@ class ManagerGeneratorTest extends GeneratorTestCase
                  * Usage is similar to `findWhere` method.
                  *
                  * @param array<string, mixed>|string $where
+                 *
                  * @param array<string, mixed> $data
                  */
                 public function updateWhere(string|array $where, iterable $data, mixed ...$params): int
@@ -307,6 +372,7 @@ class ManagerGeneratorTest extends GeneratorTestCase
                  * Usage is similar to `findWhere` method.
                  *
                  * @param array<string, mixed>|string $where
+                 *
                  * @return int Number of affected rows
                  */
                 public function deleteWhere(string|array $where, mixed ...$params): int
@@ -322,6 +388,18 @@ class ManagerGeneratorTest extends GeneratorTestCase
                 public function deleteAll(): int
                 {
                     return $this->table()->delete();
+                }
+
+                /**
+                 * Fetches pairs of key and value from the table.
+                 *
+                 * @param string|\Closure(T): array{0: mixed, 1?: mixed}|int|null $key
+                 *
+                 * @return array<string, mixed>
+                 */
+                public function fetchPairs(string|\Closure|int|null $key = null, string|int|null $value = null): array
+                {
+                    return $this->getAll()->fetchPairs($key, $value);
                 }
 
                 /**
@@ -356,6 +434,16 @@ class ManagerGeneratorTest extends GeneratorTestCase
                 public function rollBack(): void
                 {
                     $this->explorer->rollBack();
+                }
+
+                /**
+                 * Throws an exception with a message and context information.
+                 *
+                 * @throws \RuntimeException
+                 */
+                protected function throwStrict(string $message, mixed $context): never
+                {
+                    throw new \RuntimeException($message . '(' . var_export($context, true) . ')');
                 }
 
                 /**
