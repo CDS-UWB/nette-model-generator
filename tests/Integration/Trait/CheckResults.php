@@ -6,15 +6,24 @@ namespace Tests\Integration\Trait;
 
 trait CheckResults
 {
-    public function checkColumns(string $outDir, string $path = 'App/Model/Generated/Columns'): void
+    /**
+     * @param array{
+     *     basic: array{id: string, text_value: string, optional_text: string, bool_value: string, created_at: string},
+     *     date_time: array{id: string, date_value: string, time_value: string, datetime_value: string, timestamp_value: string},
+     *     enum: array{id: string, status: string, priority: string},
+     *     json_and_binary: array{id: string, json_value: string, blob_value: string, long_text_value: string},
+     *     number: array{id: string, tiny_value: string, small_value: string, int_value: string, big_value: string, decimal_value: string, float_value: string, double_value: string}
+     * } $columnTypes
+     */
+    public function checkColumns(string $outDir, array $columnTypes, string $path = 'App/Model/Generated/Columns'): void
     {
         $columnsDir = $outDir . '/' . $path;
 
-        $this->checkBasicColumns($columnsDir . '/TestBasicColumns.php');
-        $this->checkDateTimeColumns($columnsDir . '/TestDateTimeColumns.php');
-        $this->checkEnumColumns($columnsDir . '/TestEnumColumns.php');
-        $this->checkJsonAndBinaryColumns($columnsDir . '/TestJsonAndBinaryColumns.php');
-        $this->checkNumberColumns($columnsDir . '/TestNumberColumns.php');
+        $this->checkBasicColumns($columnsDir . '/TestBasicColumns.php', $columnTypes['basic']);
+        $this->checkDateTimeColumns($columnsDir . '/TestDateTimeColumns.php', $columnTypes['date_time']);
+        $this->checkEnumColumns($columnsDir . '/TestEnumColumns.php', $columnTypes['enum']);
+        $this->checkJsonAndBinaryColumns($columnsDir . '/TestJsonAndBinaryColumns.php', $columnTypes['json_and_binary']);
+        $this->checkNumberColumns($columnsDir . '/TestNumberColumns.php', $columnTypes['number']);
     }
 
     /**
@@ -51,9 +60,12 @@ trait CheckResults
         $this->checkNumberColumnsRowBase($rowsDir . '/TestNumberColumnsActiveRowBase.php');
     }
 
-    private function checkBasicColumns(string $filePath): void
+    /**
+     * @param array{id: string, text_value: string, optional_text: string, bool_value: string, created_at: string} $types
+     */
+    private function checkBasicColumns(string $filePath, array $types): void
     {
-        $php = <<<'PHP'
+        $php = <<<PHP
             <?php
 
             /**
@@ -64,7 +76,7 @@ trait CheckResults
 
             declare(strict_types=1);
 
-            namespace App\Model\Generated\Columns;
+            namespace App\\Model\\Generated\\Columns;
 
             class TestBasicColumns
             {
@@ -77,11 +89,17 @@ trait CheckResults
                 /**
                  * Returns an array of column names.
                  *
-                 * @return list<string>
+                 * @return array<string, string>
                  */
                 public static function getColumns(): array
                 {
-                    return ['id', 'text_value', 'optional_text', 'bool_value', 'created_at'];
+                    return [
+                        'id' => '{$types['id']}',
+                        'text_value' => '{$types['text_value']}',
+                        'optional_text' => '{$types['optional_text']}',
+                        'bool_value' => '{$types['bool_value']}',
+                        'created_at' => '{$types['created_at']}',
+                    ];
                 }
             }
 
@@ -92,9 +110,12 @@ trait CheckResults
         $this->assertSame($php, $actual);
     }
 
-    private function checkDateTimeColumns(string $filePath): void
+    /**
+     * @param array{id: string, date_value: string, time_value: string, datetime_value: string, timestamp_value: string} $types
+     */
+    private function checkDateTimeColumns(string $filePath, array $types): void
     {
-        $php = <<<'PHP'
+        $php = <<<PHP
             <?php
 
             /**
@@ -105,7 +126,7 @@ trait CheckResults
 
             declare(strict_types=1);
 
-            namespace App\Model\Generated\Columns;
+            namespace App\\Model\\Generated\\Columns;
 
             class TestDateTimeColumns
             {
@@ -118,11 +139,17 @@ trait CheckResults
                 /**
                  * Returns an array of column names.
                  *
-                 * @return list<string>
+                 * @return array<string, string>
                  */
                 public static function getColumns(): array
                 {
-                    return ['id', 'date_value', 'time_value', 'datetime_value', 'timestamp_value'];
+                    return [
+                        'id' => '{$types['id']}',
+                        'date_value' => '{$types['date_value']}',
+                        'time_value' => '{$types['time_value']}',
+                        'datetime_value' => '{$types['datetime_value']}',
+                        'timestamp_value' => '{$types['timestamp_value']}',
+                    ];
                 }
             }
 
@@ -133,9 +160,12 @@ trait CheckResults
         $this->assertSame($php, $actual);
     }
 
-    private function checkEnumColumns(string $filePath): void
+    /**
+     * @param array{id: string, status: string, priority: string} $types
+     */
+    private function checkEnumColumns(string $filePath, array $types): void
     {
-        $php = <<<'PHP'
+        $php = <<<PHP
             <?php
 
             /**
@@ -146,7 +176,7 @@ trait CheckResults
 
             declare(strict_types=1);
 
-            namespace App\Model\Generated\Columns;
+            namespace App\\Model\\Generated\\Columns;
 
             class TestEnumColumns
             {
@@ -157,11 +187,11 @@ trait CheckResults
                 /**
                  * Returns an array of column names.
                  *
-                 * @return list<string>
+                 * @return array<string, string>
                  */
                 public static function getColumns(): array
                 {
-                    return ['id', 'status', 'priority'];
+                    return ['id' => '{$types['id']}', 'status' => '{$types['status']}', 'priority' => '{$types['priority']}'];
                 }
             }
 
@@ -172,9 +202,12 @@ trait CheckResults
         $this->assertSame($php, $actual);
     }
 
-    private function checkJsonAndBinaryColumns(string $filePath): void
+    /**
+     * @param array{id: string, json_value: string, blob_value: string, long_text_value: string} $types
+     */
+    private function checkJsonAndBinaryColumns(string $filePath, array $types): void
     {
-        $php = <<<'PHP'
+        $php = <<<PHP
             <?php
 
             /**
@@ -185,7 +218,7 @@ trait CheckResults
 
             declare(strict_types=1);
 
-            namespace App\Model\Generated\Columns;
+            namespace App\\Model\\Generated\\Columns;
 
             class TestJsonAndBinaryColumns
             {
@@ -197,11 +230,11 @@ trait CheckResults
                 /**
                  * Returns an array of column names.
                  *
-                 * @return list<string>
+                 * @return array<string, string>
                  */
                 public static function getColumns(): array
                 {
-                    return ['id', 'json_value', 'blob_value', 'long_text_value'];
+                    return ['id' => '{$types['id']}', 'json_value' => '{$types['json_value']}', 'blob_value' => '{$types['blob_value']}', 'long_text_value' => '{$types['long_text_value']}'];
                 }
             }
 
@@ -212,9 +245,12 @@ trait CheckResults
         $this->assertSame($php, $actual);
     }
 
-    private function checkNumberColumns(string $filePath): void
+    /**
+     * @param array{id: string, tiny_value: string, small_value: string, int_value: string, big_value: string, decimal_value: string, float_value: string, double_value: string} $types
+     */
+    private function checkNumberColumns(string $filePath, array $types): void
     {
-        $php = <<<'PHP'
+        $php = <<<PHP
             <?php
 
             /**
@@ -225,7 +261,7 @@ trait CheckResults
 
             declare(strict_types=1);
 
-            namespace App\Model\Generated\Columns;
+            namespace App\\Model\\Generated\\Columns;
 
             class TestNumberColumns
             {
@@ -241,11 +277,20 @@ trait CheckResults
                 /**
                  * Returns an array of column names.
                  *
-                 * @return list<string>
+                 * @return array<string, string>
                  */
                 public static function getColumns(): array
                 {
-                    return ['id', 'tiny_value', 'small_value', 'int_value', 'big_value', 'decimal_value', 'float_value', 'double_value'];
+                    return [
+                        'id' => '{$types['id']}',
+                        'tiny_value' => '{$types['tiny_value']}',
+                        'small_value' => '{$types['small_value']}',
+                        'int_value' => '{$types['int_value']}',
+                        'big_value' => '{$types['big_value']}',
+                        'decimal_value' => '{$types['decimal_value']}',
+                        'float_value' => '{$types['float_value']}',
+                        'double_value' => '{$types['double_value']}',
+                    ];
                 }
             }
 

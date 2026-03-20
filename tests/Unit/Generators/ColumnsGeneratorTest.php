@@ -143,18 +143,18 @@ class ColumnsGeneratorTest extends GeneratorTestCase
             /**
              * Returns an array of column names.
              *
-             * @return list<string>
+             * @return array<string, string>
              */
             public static function getColumns(): array
             {
                 return [
-                    'id',
-                    'text_column',
-                    'date_column',
-                    'bool_column',
-                    'nullable_bool_column',
-                    'float_column',
-                    'column_without_comment',
+                    'id' => 'int',
+                    'text_column' => 'text',
+                    'date_column' => 'datetime',
+                    'bool_column' => 'boolean',
+                    'nullable_bool_column' => 'boolean',
+                    'float_column' => 'float',
+                    'column_without_comment' => 'varchar',
                 ];
             }
         PHP;

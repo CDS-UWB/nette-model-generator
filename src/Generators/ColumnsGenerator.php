@@ -2,7 +2,6 @@
 
 namespace Cds\NetteModelGenerator\Generators;
 
-use Cds\NetteModelGenerator\Data\Column;
 use Cds\NetteModelGenerator\Data\Table;
 
 class ColumnsGenerator extends Generator
@@ -43,12 +42,17 @@ class ColumnsGenerator extends Generator
             }
         }
 
+        $columnsArray = [];
+        foreach ($columns as $column) {
+            $columnsArray[$column->name] = $column->type;
+        }
+
         $class->addMethod('getColumns')
             ->setStatic()
             ->setReturnType('array')
-            ->addBody('return ?;', [array_map(static fn (Column $column) => $column->name, $columns)])
+            ->addBody('return ?;', [$columnsArray])
             ->addComment("Returns an array of column names.\n")
-            ->addComment('@return list<string>')
+            ->addComment('@return array<string, string>')
         ;
 
         if ($this->writeFile($filePath, $file)) {
