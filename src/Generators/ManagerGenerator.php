@@ -193,6 +193,45 @@ class ManagerGenerator extends Generator
             ->addComment('@throws \RuntimeException')
         ;
 
+        $class->addMethod('exists')
+            ->setReturnType('bool')
+            ->setParameters([
+                (new Parameter('primary'))->setType('array|int|string'),
+            ])
+            ->setBody('return $this->find($primary)->count(\'*\') > 0;')
+            ->addComment("Checks if any row exists.\n")
+            ->addComment('@param list<int|string>|int|string $primary')
+        ;
+
+        $class->addMethod('existsWhere')
+            ->setReturnType('bool')
+            ->setParameters([
+                (new Parameter('where'))->setType('array'),
+            ])
+            ->setBody('return $this->findWhere($where)->count(\'*\') > 0;')
+            ->addComment("Checks if any row exists that matches the given conditions.\n")
+            ->addComment('@param array<string, mixed> $where')
+        ;
+
+        $class->addMethod('getUnique')
+            ->setReturnType('array')
+            ->setParameters([
+                (new Parameter('column'))->setType('string'),
+                (new Parameter('where'))->setType('array')->setDefaultValue([]),
+            ])
+            ->setBody(<<<'PHP'
+            return $this->table()
+                ->select("DISTINCT {$column}")
+                ->where($where)
+                ->order('1')
+                ->fetchPairs(null, $column)
+            ;
+            PHP)
+            ->addComment("Fetches a list of unique values of a column from the table.\n")
+            ->addComment("@param array<string, mixed> \$where \n")
+            ->addComment('@return array<string>')
+        ;
+
         $class->addMethod('insert')
             ->setReturnType(ActiveRow::class)
             ->setParameters([

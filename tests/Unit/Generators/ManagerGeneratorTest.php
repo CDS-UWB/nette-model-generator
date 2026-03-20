@@ -295,6 +295,43 @@ class ManagerGeneratorTest extends GeneratorTestCase
                 }
 
                 /**
+                 * Checks if any row exists.
+                 *
+                 * @param list<int|string>|int|string $primary
+                 */
+                public function exists(array|int|string $primary): bool
+                {
+                    return $this->find($primary)->count('*') > 0;
+                }
+
+                /**
+                 * Checks if any row exists that matches the given conditions.
+                 *
+                 * @param array<string, mixed> $where
+                 */
+                public function existsWhere(array $where): bool
+                {
+                    return $this->findWhere($where)->count('*') > 0;
+                }
+
+                /**
+                 * Fetches a list of unique values of a column from the table.
+                 *
+                 * @param array<string, mixed> $where
+                 *
+                 * @return array<string>
+                 */
+                public function getUnique(string $column, array $where = []): array
+                {
+                    return $this->table()
+                        ->select("DISTINCT {$column}")
+                        ->where($where)
+                        ->order('1')
+                        ->fetchPairs(null, $column)
+                    ;
+                }
+
+                /**
                  * Inserts a single row into the table and returns the record.
                  *
                  * @param array<string, mixed> $data
