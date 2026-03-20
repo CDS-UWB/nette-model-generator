@@ -95,6 +95,7 @@ class ManagerGeneratorTest extends GeneratorTestCase
 
             namespace App\Model\Generated\Managers;
 
+            use App\Model\Generated\Columns\TestTable;
             use App\Model\Managers\ManagerBase;
             use App\Model\Rows\TestTableActiveRow;
 
@@ -103,9 +104,20 @@ class ManagerGeneratorTest extends GeneratorTestCase
              */
             abstract class TestTableManagerBase extends ManagerBase
             {
+                /**
+                 * {@inheritDoc}
+                 */
                 public function getTableName(): string
                 {
                     return 'test_table';
+                }
+
+                /**
+                 * {@inheritDoc}
+                 */
+                public function getColumns(): array
+                {
+                    return TestTable::getColumns();
                 }
             }
 
@@ -474,6 +486,16 @@ class ManagerGeneratorTest extends GeneratorTestCase
                 }
 
                 /**
+                 * Returns an array of column names in the table.
+                 *
+                 * @return array<string>
+                 */
+                public function getColumnNames(): array
+                {
+                    return array_keys($this->getColumns());
+                }
+
+                /**
                  * Throws an exception with a message and context information.
                  *
                  * @throws \RuntimeException
@@ -487,6 +509,13 @@ class ManagerGeneratorTest extends GeneratorTestCase
                  * Returns the name of the table.
                  */
                 abstract public function getTableName(): string;
+
+                /**
+                 * Returns an array of column names and their types.
+                 *
+                 * @return array<string, string>
+                 */
+                abstract public function getColumns(): array;
 
                 /**
                  * Returns table selection.

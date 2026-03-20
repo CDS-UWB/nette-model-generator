@@ -369,6 +369,13 @@ class ManagerGenerator extends Generator
             ->addComment("Rolls back a transaction.\n")
         ;
 
+        $class->addMethod('getColumnNames')
+            ->setReturnType('array')
+            ->addComment("Returns an array of column names in the table.\n")
+            ->addComment('@return array<string>')
+            ->setBody('return array_keys($this->getColumns());')
+        ;
+
         $class->addMethod('throwStrict')
             ->setReturnType('never')
             ->setParameters([
@@ -385,6 +392,13 @@ class ManagerGenerator extends Generator
             ->setReturnType('string')
             ->setAbstract()
             ->addComment('Returns the name of the table.')
+        ;
+
+        $class->addMethod('getColumns')
+            ->setReturnType('array')
+            ->setAbstract()
+            ->addComment("Returns an array of column names and their types.\n")
+            ->addComment('@return array<string, string>')
         ;
 
         $class->addMethod('table')
@@ -448,6 +462,7 @@ class ManagerGenerator extends Generator
         $className = $this->context->fileManager->getBaseManagerForTableName($table);
         $filePath = $this->context->fileManager->getBaseManagerForTablePath($table);
         $baseManagerName = $this->context->fileManager->getBaseManagerName();
+        $columnsClassName = $this->context->fileManager->getColumnsName($table);
 
         $this->log("\t\t- {$className}");
 
@@ -461,14 +476,23 @@ class ManagerGenerator extends Generator
         $class->addComment("@extends ManagerBase<{$rowTypeWONamespace}>");
         $class->setAbstract();
         $class->setExtends($baseManagerName);
-        $class->getNamespace()
+        $namespace = $class->getNamespace()
             ?->addUse($rowType)
             ?->addUse($baseManagerName)
+            ?->addUse($columnsClassName)
         ;
+        assert($namespace !== null);
 
         $class->addMethod('getTableName')
             ->setReturnType('string')
             ->setBody("return '{$table->getFullName()}';")
+            ->addComment('{@inheritDoc}')
+        ;
+
+        $class->addMethod('getColumns')
+            ->setReturnType('array')
+            ->setBody('return ' . $namespace->simplifyType($columnsClassName) . '::getColumns();')
+            ->addComment('{@inheritDoc}')
         ;
 
         if ($this->writeFile($filePath, $file)) {

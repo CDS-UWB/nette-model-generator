@@ -374,6 +374,7 @@ trait CheckResults
 
             namespace App\\Model\\Generated\\Managers;
 
+            use App\\Model\\Generated\\Columns\\TestBasicColumns;
             use App\\Model\\Managers\\ManagerBase;
             use App\\Model\\Rows\\TestBasicColumnsActiveRow;
 
@@ -382,9 +383,20 @@ trait CheckResults
              */
             abstract class TestBasicColumnsManagerBase extends ManagerBase
             {
+                /**
+                 * {@inheritDoc}
+                 */
                 public function getTableName(): string
                 {
                     return '{$schema}test_basic_columns';
+                }
+
+                /**
+                 * {@inheritDoc}
+                 */
+                public function getColumns(): array
+                {
+                    return TestBasicColumns::getColumns();
                 }
             }
 
@@ -409,7 +421,8 @@ trait CheckResults
                 declare(strict_types=1);
     
                 namespace App\\Model\\Generated\\Managers;
-    
+
+                use App\\Model\\Generated\\Columns\\TestDateTimeColumns;
                 use App\\Model\\Managers\\ManagerBase;
                 use App\\Model\\Rows\\TestDateTimeColumnsActiveRow;
     
@@ -418,9 +431,20 @@ trait CheckResults
                  */
                 abstract class TestDateTimeColumnsManagerBase extends ManagerBase
                 {
+                    /**
+                     * {@inheritDoc}
+                     */
                     public function getTableName(): string
                     {
                         return '{$schema}test_date_time_columns';
+                    }
+
+                    /**
+                     * {@inheritDoc}
+                     */
+                    public function getColumns(): array
+                    {
+                        return TestDateTimeColumns::getColumns();
                     }
                 }
     
@@ -446,6 +470,7 @@ trait CheckResults
     
                 namespace App\\Model\\Generated\\Managers;
     
+                use App\\Model\\Generated\\Columns\\TestEnumColumns;
                 use App\\Model\\Managers\\ManagerBase;
                 use App\\Model\\Rows\\TestEnumColumnsActiveRow;
     
@@ -454,9 +479,20 @@ trait CheckResults
                  */
                 abstract class TestEnumColumnsManagerBase extends ManagerBase
                 {
+                    /**
+                     * {@inheritDoc}
+                     */
                     public function getTableName(): string
                     {
                         return '{$schema}test_enum_columns';
+                    }
+
+                    /**
+                     * {@inheritDoc}
+                     */
+                    public function getColumns(): array
+                    {
+                        return TestEnumColumns::getColumns();
                     }
                 }
     
@@ -482,6 +518,7 @@ trait CheckResults
 
             namespace App\\Model\\Generated\\Managers;
 
+            use App\\Model\\Generated\\Columns\\TestJsonAndBinaryColumns;
             use App\\Model\\Managers\\ManagerBase;
             use App\\Model\\Rows\\TestJsonAndBinaryColumnsActiveRow;
 
@@ -490,9 +527,20 @@ trait CheckResults
              */
             abstract class TestJsonAndBinaryColumnsManagerBase extends ManagerBase
             {
+                /**
+                 * {@inheritDoc}
+                 */
                 public function getTableName(): string
                 {
                     return '{$schema}test_json_and_binary_columns';
+                }
+
+                /**
+                 * {@inheritDoc}
+                 */
+                public function getColumns(): array
+                {
+                    return TestJsonAndBinaryColumns::getColumns();
                 }
             }
 
@@ -518,6 +566,7 @@ trait CheckResults
 
             namespace App\\Model\\Generated\\Managers;
 
+            use App\\Model\\Generated\\Columns\\TestNumberColumns;
             use App\\Model\\Managers\\ManagerBase;
             use App\\Model\\Rows\\TestNumberColumnsActiveRow;
 
@@ -526,9 +575,20 @@ trait CheckResults
              */
             abstract class TestNumberColumnsManagerBase extends ManagerBase
             {
+                /**
+                 * {@inheritDoc}
+                 */
                 public function getTableName(): string
                 {
                     return '{$schema}test_number_columns';
+                }
+
+                /**
+                 * {@inheritDoc}
+                 */
+                public function getColumns(): array
+                {
+                    return TestNumberColumns::getColumns();
                 }
             }
 
