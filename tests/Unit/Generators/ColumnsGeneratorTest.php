@@ -16,9 +16,11 @@ class ColumnsGeneratorTest extends GeneratorTestCase
     public function generate(): void
     {
         $this->fileWriter->method('writeFile')->willReturnCallback(static function (string $path, PhpFile $content, Printer $printer) {
+            $columnsFunction = self::getColumnsFunction();
+
             self::assertEquals(self::GeneratedDir . '/App/Model/Generated/Columns/TestTable.php', $path);
             self::assertEquals(
-                <<<'PHP'
+                <<<PHP
             <?php
 
             /**
@@ -29,7 +31,7 @@ class ColumnsGeneratorTest extends GeneratorTestCase
 
             declare(strict_types=1);
 
-            namespace App\Model\Generated\Columns;
+            namespace App\\Model\\Generated\\Columns;
 
             class TestTable
             {
@@ -51,6 +53,8 @@ class ColumnsGeneratorTest extends GeneratorTestCase
                 /** float column comment */
                 public const FloatColumn = 'float_column';
                 public const ColumnWithoutComment = 'column_without_comment';
+
+            {$columnsFunction}
             }
 
             PHP,
@@ -69,9 +73,11 @@ class ColumnsGeneratorTest extends GeneratorTestCase
     public function constructorSanitizerOverridesContext(): void
     {
         $this->fileWriter->method('writeFile')->willReturnCallback(static function (string $path, PhpFile $content, Printer $printer) {
+            $columnsFunction = self::getColumnsFunction();
+
             self::assertEquals(self::GeneratedDir . '/App/Model/Generated/Columns/TestTable.php', $path);
             self::assertEquals(
-                <<<'PHP'
+                <<<PHP
             <?php
 
             /**
@@ -82,7 +88,7 @@ class ColumnsGeneratorTest extends GeneratorTestCase
 
             declare(strict_types=1);
 
-            namespace App\Model\Generated\Columns;
+            namespace App\\Model\\Generated\\Columns;
 
             class TestTable
             {
@@ -104,6 +110,8 @@ class ColumnsGeneratorTest extends GeneratorTestCase
                 /** float column comment */
                 public const COL_FLOAT_COLUMN = 'float_column';
                 public const COL_COLUMN_WITHOUT_COMMENT = 'column_without_comment';
+
+            {$columnsFunction}
             }
 
             PHP,
@@ -127,5 +135,28 @@ class ColumnsGeneratorTest extends GeneratorTestCase
         $processedFiles = iterator_to_array($generator->generate());
 
         self::assertCount(1, $processedFiles);
+    }
+
+    private static function getColumnsFunction(): string
+    {
+        return <<<'PHP'
+            /**
+             * Returns an array of column names.
+             *
+             * @return list<string>
+             */
+            public static function getColumns(): array
+            {
+                return [
+                    'id',
+                    'text_column',
+                    'date_column',
+                    'bool_column',
+                    'nullable_bool_column',
+                    'float_column',
+                    'column_without_comment',
+                ];
+            }
+        PHP;
     }
 }
