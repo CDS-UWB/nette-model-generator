@@ -2,6 +2,7 @@
 
 namespace Cds\NetteModelGenerator\Generators;
 
+use Cds\NetteModelGenerator\Data\Column;
 use Cds\NetteModelGenerator\Data\Table;
 
 class ColumnsGenerator extends Generator
@@ -29,7 +30,9 @@ class ColumnsGenerator extends Generator
         $file = $this->createGeneratedPhpFile();
         $class = $file->addClass($name);
 
-        foreach ($this->context->reflection->getColumns($table) as $column) {
+        $columns = iterator_to_array($this->context->reflection->getColumns($table));
+
+        foreach ($columns as $column) {
             $const = $class->addConstant(
                 name: $this->sanitizeVariable($column->name, isConstOrEnum: true),
                 value: $column->name
@@ -39,6 +42,14 @@ class ColumnsGenerator extends Generator
                 $const->setComment($column->comment);
             }
         }
+
+        $class->addMethod('getColumns')
+            ->setStatic()
+            ->setReturnType('array')
+            ->addBody('return ?;', [array_map(static fn (Column $column) => $column->name, $columns)])
+            ->addComment("Returns an array of column names.\n")
+            ->addComment('@return list<string>')
+        ;
 
         if ($this->writeFile($filePath, $file)) {
             return [$filePath];

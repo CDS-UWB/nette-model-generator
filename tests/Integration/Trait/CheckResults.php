@@ -73,6 +73,16 @@ trait CheckResults
                 public const OptionalText = 'optional_text';
                 public const BoolValue = 'bool_value';
                 public const CreatedAt = 'created_at';
+
+                /**
+                 * Returns an array of column names.
+                 *
+                 * @return list<string>
+                 */
+                public static function getColumns(): array
+                {
+                    return ['id', 'text_value', 'optional_text', 'bool_value', 'created_at'];
+                }
             }
 
             PHP;
@@ -104,6 +114,16 @@ trait CheckResults
                 public const TimeValue = 'time_value';
                 public const DatetimeValue = 'datetime_value';
                 public const TimestampValue = 'timestamp_value';
+
+                /**
+                 * Returns an array of column names.
+                 *
+                 * @return list<string>
+                 */
+                public static function getColumns(): array
+                {
+                    return ['id', 'date_value', 'time_value', 'datetime_value', 'timestamp_value'];
+                }
             }
 
             PHP;
@@ -133,6 +153,16 @@ trait CheckResults
                 public const Id = 'id';
                 public const Status = 'status';
                 public const Priority = 'priority';
+
+                /**
+                 * Returns an array of column names.
+                 *
+                 * @return list<string>
+                 */
+                public static function getColumns(): array
+                {
+                    return ['id', 'status', 'priority'];
+                }
             }
 
             PHP;
@@ -163,6 +193,16 @@ trait CheckResults
                 public const JsonValue = 'json_value';
                 public const BlobValue = 'blob_value';
                 public const LongTextValue = 'long_text_value';
+
+                /**
+                 * Returns an array of column names.
+                 *
+                 * @return list<string>
+                 */
+                public static function getColumns(): array
+                {
+                    return ['id', 'json_value', 'blob_value', 'long_text_value'];
+                }
             }
 
             PHP;
@@ -197,6 +237,16 @@ trait CheckResults
                 public const DecimalValue = 'decimal_value';
                 public const FloatValue = 'float_value';
                 public const DoubleValue = 'double_value';
+
+                /**
+                 * Returns an array of column names.
+                 *
+                 * @return list<string>
+                 */
+                public static function getColumns(): array
+                {
+                    return ['id', 'tiny_value', 'small_value', 'int_value', 'big_value', 'decimal_value', 'float_value', 'double_value'];
+                }
             }
 
             PHP;
