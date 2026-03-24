@@ -3,6 +3,7 @@
 namespace Cds\NetteModelGenerator\Reflections;
 
 use Cds\NetteModelGenerator\Data\Column;
+use Cds\NetteModelGenerator\Data\CustomType;
 use Cds\NetteModelGenerator\Data\Enum;
 use Cds\NetteModelGenerator\Data\Table;
 use Cds\NetteModelGenerator\TypeMappers\MySqlTypeMapper;
@@ -14,7 +15,7 @@ use Nette\Database\Row;
 readonly class MySqlReflection implements Reflection
 {
     /**
-     * @param array<string, mixed> $customTypes Custom mapping of DB types to PHP types, e.g. ['date' => DateTime::class]
+     * @param array<CustomType> $customTypes Custom mapping of DB types to PHP types
      */
     public function __construct(protected Connection $connection, protected string $dbName, protected array $customTypes = [])
     {
@@ -115,6 +116,14 @@ readonly class MySqlReflection implements Reflection
     public function getTypeMapper(): TypeMapper
     {
         return new MySqlTypeMapper($this, $this->customTypes);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function getCustomTypes(): array
+    {
+        return $this->customTypes;
     }
 
     /**

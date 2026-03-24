@@ -2,6 +2,7 @@
 
 namespace Tests\Unit\TypeMappers;
 
+use Cds\NetteModelGenerator\Data\CustomType;
 use Cds\NetteModelGenerator\Reflections\PostgreSqlReflection;
 use Cds\NetteModelGenerator\TypeMappers\PostgreSqlTypeMapper;
 use DateInterval;
@@ -58,7 +59,15 @@ class PostgreSqlTypeMapperTest extends TestCase
     #[Test]
     public function customType(): void
     {
-        $mapper = new PostgreSqlTypeMapper($this->postgreSqlReflection, ['int' => '\\' . \stdClass::class]);
+        $mapper = new PostgreSqlTypeMapper(
+            reflection: $this->postgreSqlReflection,
+            customTypes: [
+                new CustomType(
+                    dbType: 'int',
+                    phpType: '\\' . \stdClass::class
+                ),
+            ]
+        );
 
         $this->assertEquals('\stdClass', $mapper->toPhp('int'));
     }

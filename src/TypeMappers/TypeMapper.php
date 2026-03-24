@@ -2,6 +2,7 @@
 
 namespace Cds\NetteModelGenerator\TypeMappers;
 
+use Cds\NetteModelGenerator\Data\CustomType;
 use Cds\NetteModelGenerator\Reflections\Reflection;
 use InvalidArgumentException;
 
@@ -14,8 +15,8 @@ abstract readonly class TypeMapper
     public const array BaseTypes = [];
 
     /**
-     * @param T                    $reflection
-     * @param array<string, mixed> $customTypes
+     * @param T                 $reflection
+     * @param array<CustomType> $customTypes
      */
     public function __construct(protected Reflection $reflection, protected array $customTypes = [])
     {
@@ -33,8 +34,10 @@ abstract readonly class TypeMapper
             return $item;
         }
 
-        if (array_key_exists($type, $this->customTypes)) {
-            return $this->customTypes[$type];
+        foreach ($this->customTypes as $customType) {
+            if ($customType->dbType === $type) {
+                return $customType->phpType;
+            }
         }
 
         if (array_key_exists($type, static::BaseTypes)) {

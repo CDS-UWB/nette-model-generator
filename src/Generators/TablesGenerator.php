@@ -2,6 +2,8 @@
 
 namespace Cds\NetteModelGenerator\Generators;
 
+use Cds\NetteModelGenerator\Data\Column;
+use Cds\NetteModelGenerator\Data\CustomType;
 use Cds\NetteModelGenerator\Data\Table;
 use Cds\NetteModelGenerator\GeneratorContext;
 use Closure;
@@ -91,6 +93,19 @@ class TablesGenerator extends Generator
                 $property->addComment('@phpstan-ignore missingType.iterableValue');
             }
 
+            // Handle custom types
+            $customType = $this->getCustomType($column);
+            foreach ($customType->annotations ?? [] as $annotation) {
+                $property->addComment($annotation);
+            }
+
+            // If the cast value callback is defined, we use it in the getter hook.
+            if ($customType?->castValueCallback !== null) {
+                $property->addHook('get', ($customType->castValueCallback)($column->name));
+
+                continue;
+            }
+
             if ($type === 'bool') {
                 $property->addHook('get', '(bool) $this[\'' . $column->name . '\']');
 
@@ -154,5 +169,16 @@ class TablesGenerator extends Generator
         $reflection = new \ReflectionClass(ActiveRow::class);
 
         return array_map(static fn (\ReflectionProperty $prop) => $prop->name, $reflection->getProperties());
+    }
+
+    /**
+     * Returns the custom type for the given column, or null if no custom type is defined for it.
+     */
+    private function getCustomType(Column $column): CustomType|null
+    {
+        return current(array_filter(
+            array: $this->context->reflection->getCustomTypes(),
+            callback: static fn (CustomType $customType) => $customType->dbType === $column->type,
+        )) ?: null;
     }
 }
