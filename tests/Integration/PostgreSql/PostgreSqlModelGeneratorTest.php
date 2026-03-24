@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Integration\PostgreSql;
 
+use Cds\NetteModelGenerator\Data\CustomType;
 use Cds\NetteModelGenerator\FileWriter;
 use Cds\NetteModelGenerator\GeneratorContext;
 use Cds\NetteModelGenerator\ModelGenerator;
@@ -46,6 +47,41 @@ class PostgreSqlModelGeneratorTest extends PostgreSqlDatabaseTestCase
         $this->checkEnums($dir, enumPrefix: '');
         $this->checkManagersBase($dir, $this->schema . '.');
         $this->checkRowsBase($dir);
+    }
+
+    #[Test]
+    public function generateModelWithCustomTypes(): void
+    {
+        $customTypes = [
+            new CustomType(
+                dbType: 'date',
+                phpType: '\\' . \DateTime::class,
+                annotations: ['@phpstan-ignore property.unusedType'],
+                castValueCallback: static fn (string $column): string => '$this[\'' . $column . '\'] !== null ? (new \\DateTimeImmutable((string) $this[\'' . $column . '\'])) : null',
+            ),
+        ];
+
+        $context = new GeneratorContext(
+            reflection: new PostgreSqlReflection($this->connection, $this->dbName, schemas: [$this->schema], customTypes: $customTypes),
+            fileManager: new Psr4FileManager(
+                rootDir: $this->outputDir,
+                namespace: ['App', 'Model'],
+                includeSchema: false,
+            ),
+            fileWriter: new FileWriter(),
+            printer: new PsrPrinter(),
+        );
+
+        $generator = new ModelGenerator();
+
+        $files = iterator_to_array($generator->runDefault($context), false);
+
+        $dir = implode(DIRECTORY_SEPARATOR, $this->outputDir);
+
+        $this->checkColumns($dir, $this->getColumnTypes());
+        $this->checkEnums($dir, enumPrefix: '');
+        $this->checkManagersBase($dir, $this->schema . '.');
+        $this->checkRowsBaseWithCustomTypes($dir);
     }
 
     /**

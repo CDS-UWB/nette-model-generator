@@ -2,6 +2,7 @@
 
 namespace Tests\Unit\TypeMappers;
 
+use Cds\NetteModelGenerator\Data\CustomType;
 use Cds\NetteModelGenerator\Reflections\MySqlReflection;
 use Cds\NetteModelGenerator\TypeMappers\MySqlTypeMapper;
 use DateTime;
@@ -57,7 +58,15 @@ class MySqlTypeMapperTest extends TestCase
     #[Test]
     public function customType(): void
     {
-        $mapper = new MySqlTypeMapper($this->mysqlReflection, ['int' => '\\' . \stdClass::class]);
+        $mapper = new MySqlTypeMapper(
+            reflection: $this->mysqlReflection,
+            customTypes: [
+                new CustomType(
+                    dbType: 'int',
+                    phpType: '\\' . \stdClass::class
+                ),
+            ]
+        );
 
         $this->assertEquals('\stdClass', $mapper->toPhp('int'));
     }

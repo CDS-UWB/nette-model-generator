@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Cds\NetteModelGenerator\Reflections;
 
 use Cds\NetteModelGenerator\Data\Column;
+use Cds\NetteModelGenerator\Data\CustomType;
 use Cds\NetteModelGenerator\Data\Enum;
 use Cds\NetteModelGenerator\Data\Table;
 use Cds\NetteModelGenerator\TypeMappers\PostgreSqlTypeMapper;
@@ -16,8 +17,8 @@ use Nette\Database\Row;
 readonly class PostgreSqlReflection implements Reflection
 {
     /**
-     * @param list<string>         $schemas     list of schemas
-     * @param array<string, mixed> $customTypes Custom mapping of DB types to PHP types, e.g. ['date' => DateTime::class]
+     * @param list<string>      $schemas     list of schemas
+     * @param array<CustomType> $customTypes Custom mapping of DB types to PHP types
      */
     public function __construct(
         protected Connection $connection,
@@ -194,5 +195,13 @@ readonly class PostgreSqlReflection implements Reflection
     public function getTypeMapper(): TypeMapper
     {
         return new PostgreSqlTypeMapper($this, $this->customTypes);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function getCustomTypes(): array
+    {
+        return $this->customTypes;
     }
 }

@@ -103,23 +103,32 @@ See the table below for available methods:
 
 |Method|Description|
 |---|---|
+| `query(string $sql, mixed ...$params): ResultSet` | Executes a raw SQL query and returns the result set. |
+| `getTable(): Selection` | Returns the table selection. |
 | `getAll(): Selection` | Returns selection with all rows from the table. |
 | `find(mixed $primary): Selection` | Returns selection for row by primary key value. |
 | `findWhere(string\|array $where, mixed ...$params): Selection` | Returns a selection of rows that match the given conditions. |
 | `get(mixed $primary): ?ActiveRow` | Fetches a single row by primary key value. |
+| `getStrict(mixed $primary): ActiveRow` | Fetches a single row by primary key value, throws exception if not found. |
 | `getWhere(string\|array $where, mixed ...$params): ?ActiveRow` | Fetches a single row that matches the given conditions. |
-| `insert(array $data): ?ActiveRow` | Inserts a single row into the table and returns the record. |
-| `insertMultiple(iterable $data): iterable\|ActiveRow\|null` | Inserts multiple rows into the table and returns the first ActiveRow if table has primary key, or original input data if table doesn't have primary key. |
-| `update(mixed $primary, array $data): bool` | Updates a single row by primary key value. |
+| `getWhereStrict(string\|array $where, mixed ...$params): ActiveRow` | Fetches a single row that matches the given conditions, throws exception if not found. |
+| `exists(array\|int\|string $primary): bool` | Checks if any row exists. |
+| `existsWhere(array $where): bool` | Checks if any row exists that matches the given conditions. |
+| `getUnique(string $column, array $where = []): array` | Fetches a list of unique values of a column from the table. |
+| `insert(array $data): ActiveRow` | Inserts a single row into the table and returns the record. |
+| `insertMultiple(iterable $data): ActiveRow\|iterable` | Inserts multiple rows into the table and returns the first ActiveRow if table has primary key, or original input data if table doesn't have primary key. |
+| `update(mixed $primary, array $data): int` | Updates a single row by primary key value. |
 | `updateWhere(string\|array $where, iterable $data, mixed ...$params): int` | Updates rows that match the given conditions. |
 | `updateAll(iterable $data): int` | Updates all rows in the table. |
-| `delete(mixed $primary): bool` | Deletes a single row by primary key value. |
+| `delete(mixed $primary): int` | Deletes a single row by primary key value. |
 | `deleteWhere(string\|array $where, mixed ...$params): int` | Deletes rows that match the given conditions. |
 | `deleteAll(): int` | Deletes all rows in the table. |
+| `fetchPairs(string\|\Closure\|int\|null $key = null, string\|int\|null $value = null): array` | Fetches pairs of key and value from the table. |
 | `transaction(callable $function): mixed` | Executes function in a transaction. |
 | `beginTransaction(): void` | Begins a transaction. |
 | `commit(): void` | Commits a transaction. |
 | `rollBack(): void` | Rolls back a transaction. |
+| `getColumnNames(): array` | Returns an array of column names in the table. |
 
 ```php
 use App\Model\Manager\YourTableManager;
@@ -135,5 +144,52 @@ class YourService
         $records = $this->yourTableManager->get();
         // ...
     }
+}
+```
+
+### Custom types
+Use `Cds\NetteModelGenerator\Data\CustomType` to override how database column types are mapped
+to generated properties. You pass custom types through your reflection constructor when you
+build a `GeneratorContext` inside your build script.
+
+```php
+use Cds\NetteModelGenerator\Data\CustomType;
+use Cds\NetteModelGenerator\Generators\ModelGenerator;
+use Cds\NetteModelGenerator\GeneratorContext;
+use Cds\NetteModelGenerator\Reflections\MySqlReflection;
+use Cds\NetteModelGenerator\Psr4FileManager;
+use Cds\NetteModelGenerator\FileWriter;
+use Nette\PhpGenerator\PsrPrinter;
+
+$customTypes = [
+    new CustomType(
+        dbType: 'date',
+        phpType: '\\' . DateTime::class,
+        annotations: ['custom comment', '@annotation'],
+        castValueCallback: static fn (string $columnName): string => 
+            "\$this['" . $columnName . "'] !== null ? (new \DateTimeImmutable(\$this['" . $columnName . "'])) : null",
+    ),
+];
+
+$context = new GeneratorContext(
+    reflection: new MySqlReflection(connection: $connection, dbName: $dbName, customTypes: $customTypes),
+    fileManager: new Psr4FileManager(rootDir: $rootDir, namespace: ['App', 'Model']),
+    fileWriter: new FileWriter(),
+    printer: new PsrPrinter(),
+);
+
+(new ModelGenerator())->runDefault($context);
+
+// This will results in a following property in generated Row class for any column with dbType 'date':
+abstract class YourTableActiveRowBase extends ActiveRow
+{
+    /**
+     * custom comment
+     *
+     * @annotation
+    */
+    public \DateTime|null $yourColumnName {
+        get => $this['your_column_name'] !== null ? (new \DateTimeImmutable($this['your_column_name'])) : null;
+    } 
 }
 ```
