@@ -10,7 +10,7 @@ readonly class CustomType
 {
     /**
      * @param list<string>                $annotations
-     * @param Closure(string):string|null $castValueCallback
+     * @param Closure(Column):string|null $castValueCallback
      */
     public function __construct(
         public string $dbType,

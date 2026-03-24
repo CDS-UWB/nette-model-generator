@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Integration\MySql;
 
+use Cds\NetteModelGenerator\Data\Column;
 use Cds\NetteModelGenerator\Data\CustomType;
 use Cds\NetteModelGenerator\FileWriter;
 use Cds\NetteModelGenerator\GeneratorContext;
@@ -57,7 +58,7 @@ class MySqlModelGeneratorTest extends MySqlDatabaseTestCase
                 dbType: 'date',
                 phpType: '\\' . \DateTime::class,
                 annotations: ['@phpstan-ignore property.unusedType'],
-                castValueCallback: static fn (string $column): string => '$this[\'' . $column . '\'] !== null ? (new \\DateTimeImmutable((string) $this[\'' . $column . '\'])) : null',
+                castValueCallback: static fn (Column $column): string => '$this[\'' . $column->name . '\'] !== null ? (new \\DateTimeImmutable((string) $this[\'' . $column->name . '\'])) : null',
             ),
         ];
 

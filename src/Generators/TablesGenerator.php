@@ -101,7 +101,7 @@ class TablesGenerator extends Generator
 
             // If the cast value callback is defined, we use it in the getter hook.
             if ($customType?->castValueCallback !== null) {
-                $property->addHook('get', ($customType->castValueCallback)($column->name));
+                $property->addHook('get', ($customType->castValueCallback)($column));
 
                 continue;
             }

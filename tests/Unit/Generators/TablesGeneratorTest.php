@@ -2,6 +2,7 @@
 
 namespace Tests\Unit\Generators;
 
+use Cds\NetteModelGenerator\Data\Column;
 use Cds\NetteModelGenerator\Data\CustomType;
 use Cds\NetteModelGenerator\Generators\TablesGenerator;
 use Cds\NetteModelGenerator\Utils;
@@ -76,7 +77,7 @@ class TablesGeneratorTest extends GeneratorTestCase
             dbType: 'datetime',
             phpType: '\\' . \DateTime::class,
             annotations: ["custom note\n", '@phpstan-ignore property.unusedType'],
-            castValueCallback: static fn (string $column): string => '(new \\DateTimeImmutable((string) $this[\'' . $column . '\']))',
+            castValueCallback: static fn (Column $column): string => '(new \\DateTimeImmutable((string) $this[\'' . $column->name . '\']))',
         );
 
         $context = $this->createMysqlGeneratorContext();
