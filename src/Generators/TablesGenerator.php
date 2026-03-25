@@ -8,6 +8,7 @@ use Cds\NetteModelGenerator\Data\Table;
 use Cds\NetteModelGenerator\GeneratorContext;
 use Closure;
 use Nette\Database\Table\ActiveRow;
+use Nette\Database\Table\Selection;
 
 class TablesGenerator extends Generator
 {
@@ -66,7 +67,11 @@ class TablesGenerator extends Generator
         $class = $file->addClass($className);
         $class->setAbstract();
         $class->setExtends(ActiveRow::class);
-        $class->getNamespace()?->addUse(ActiveRow::class);
+        $class->getNamespace()
+            ?->addUse(ActiveRow::class)
+        ;
+
+        $castValuesBody = [];
 
         foreach ($this->context->reflection->getColumns($table) as $column) {
             if (!preg_match('/^[a-zA-Z]\w*/', $column->name)) {
@@ -99,11 +104,8 @@ class TablesGenerator extends Generator
                 $property->addComment($annotation);
             }
 
-            // If the cast value callback is defined, we use it in the getter hook.
             if ($customType?->castValueCallback !== null) {
-                $property->addHook('get', ($customType->castValueCallback)($column));
-
-                continue;
+                $castValuesBody[] = "\$data['{$column->name}'] = " . ($customType->castValueCallback)($column) . ';';
             }
 
             if ($type === 'bool') {
@@ -119,6 +121,33 @@ class TablesGenerator extends Generator
             }
 
             $property->addHook('get', '$this[\'' . $column->name . '\']');
+        }
+
+        if (!empty($castValuesBody)) {
+            $class->getNamespace()?->addUse(Selection::class);
+            $class->addMethod('__construct')
+                ->setParameters([
+                    (new \Nette\PhpGenerator\Parameter('data'))->setType('array'),
+                    (new \Nette\PhpGenerator\Parameter('selection'))->setType(Selection::class),
+                ])
+                ->setBody(
+                    <<<'PHP'
+                $data = $this->castValues($data);
+
+                parent::__construct($data, $selection);
+                PHP
+                )
+                ->addComment('@param array<string|int, mixed> $data')
+            ;
+
+            $class->addMethod('castValues')
+                ->setParameters([
+                    (new \Nette\PhpGenerator\Parameter('data'))->setType('array'),
+                ])
+                ->setReturnType('array')
+                ->setBody(implode("\n", $castValuesBody) . "\n\nreturn \$data;")
+                ->addComment('@param array<string, mixed> $data')
+            ;
         }
 
         if ($this->writeFile($filePath, $file)) {

@@ -720,6 +720,7 @@ trait CheckResults
                 namespace App\Model\Generated\Rows;
     
                 use Nette\Database\Table\ActiveRow;
+                use Nette\Database\Table\Selection;
     
                 abstract class TestDateTimeColumnsActiveRowBase extends ActiveRow
                 {
@@ -729,7 +730,7 @@ trait CheckResults
 
                     /** @phpstan-ignore property.unusedType */
                     public \DateTime|null $dateValue {
-                        get => $this['date_value'] !== null ? (new \DateTimeImmutable((string) $this['date_value'])) : null;
+                        get => $this['date_value'];
                     }
     
                     public \DateTime|null $timeValue {
@@ -742,6 +743,26 @@ trait CheckResults
     
                     public \DateTime|null $timestampValue {
                         get => $this['timestamp_value'];
+                    }
+
+                    /**
+                     * @param array<string|int, mixed> $data
+                     */
+                    public function __construct(array $data, Selection $selection)
+                    {
+                        $data = $this->castValues($data);
+
+                        parent::__construct($data, $selection);
+                    }
+
+                    /**
+                     * @param array<string, mixed> $data
+                     */
+                    public function castValues(array $data): array
+                    {
+                        $data['date_value'] = $this['date_value'] !== null ? (new \DateTimeImmutable((string) $this['date_value'])) : null;
+
+                        return $data;
                     }
                 }
     

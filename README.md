@@ -180,16 +180,36 @@ $context = new GeneratorContext(
 
 (new ModelGenerator())->runDefault($context);
 
-// This will results in a following property in generated Row class for any column with dbType 'date':
+// The generated base row keeps the property getter untouched and handles casting via constructor hooks:
 abstract class YourTableActiveRowBase extends ActiveRow
 {
     /**
      * custom comment
      *
      * @annotation
-    */
+     */
     public \DateTime|null $yourColumnName {
-        get => $this['your_column_name'] !== null ? (new \DateTimeImmutable($this['your_column_name'])) : null;
-    } 
+        get => $this['your_column_name'];
+    }
+
+    /**
+     * @param array<string|int, mixed> $data
+     */
+    public function __construct(array $data, Selection $selection)
+    {
+        $data = $this->castValues($data);
+
+        parent::__construct($data, $selection);
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    public function castValues(array $data): array
+    {
+        $data['your_column_name'] = $this['your_column_name'] !== null ? (new \DateTimeImmutable($this['your_column_name'])) : null;
+
+        return $data;
+    }
 }
 ```

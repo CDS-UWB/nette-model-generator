@@ -267,6 +267,7 @@ class TablesGeneratorTest extends GeneratorTestCase
             namespace App\Model\Generated\Rows;
 
             use Nette\Database\Table\ActiveRow;
+            use Nette\Database\Table\Selection;
 
             abstract class TestTableActiveRowBase extends ActiveRow
             {
@@ -287,7 +288,7 @@ class TablesGeneratorTest extends GeneratorTestCase
                  * @phpstan-ignore property.unusedType
                  */
                 public \DateTime $dateColumn {
-                    get => (new \DateTimeImmutable((string) $this['date_column']));
+                    get => $this['date_column'];
                 }
 
                 /** bool column comment */
@@ -307,6 +308,26 @@ class TablesGeneratorTest extends GeneratorTestCase
 
                 public string $columnWithoutComment {
                     get => $this['column_without_comment'];
+                }
+
+                /**
+                 * @param array<string|int, mixed> $data
+                 */
+                public function __construct(array $data, Selection $selection)
+                {
+                    $data = $this->castValues($data);
+
+                    parent::__construct($data, $selection);
+                }
+
+                /**
+                 * @param array<string, mixed> $data
+                 */
+                public function castValues(array $data): array
+                {
+                    $data['date_column'] = (new \DateTimeImmutable((string) $this['date_column']));
+
+                    return $data;
                 }
             }
 
