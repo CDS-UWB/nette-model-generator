@@ -2,6 +2,7 @@
 
 namespace Cds\NetteModelGenerator;
 
+use Cds\NetteModelGenerator\Enum\PhpVersion;
 use Cds\NetteModelGenerator\Reflections\Reflection;
 use Closure;
 use Nette\PhpGenerator\Printer;
@@ -19,6 +20,7 @@ final readonly class GeneratorContext
         public Printer $printer = new PsrPrinter(),
         public Logger $logger = new Logger(),
         public Closure|null $varNameSanitizer = null,
+        public PhpVersion $targetPhpVersion = PhpVersion::PHP_84
     ) {
     }
 }

@@ -94,7 +94,7 @@ readonly class MySqlReflection implements Reflection
             WHERE c.table_schema = ?
                 AND c.table_name = ?
                 AND t.table_type = 'BASE TABLE'
-                AND c.data_type = 'enum';
+                AND c.data_type = 'enum'
             SQL;
 
             $data = $this->connection->query($sql, $this->dbName, $table->getFullName())->fetchAll();
@@ -140,6 +140,7 @@ readonly class MySqlReflection implements Reflection
         foreach ($matches['value'] as $value) {
             $values[] = $value;
         }
+        sort($values);
 
         return $values;
     }

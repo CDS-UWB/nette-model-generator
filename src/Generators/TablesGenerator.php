@@ -5,10 +5,13 @@ namespace Cds\NetteModelGenerator\Generators;
 use Cds\NetteModelGenerator\Data\Column;
 use Cds\NetteModelGenerator\Data\CustomType;
 use Cds\NetteModelGenerator\Data\Table;
+use Cds\NetteModelGenerator\Enum\PhpVersion;
 use Cds\NetteModelGenerator\GeneratorContext;
 use Closure;
 use Nette\Database\Table\ActiveRow;
 use Nette\Database\Table\Selection;
+use Nette\PhpGenerator\ClassType;
+use Nette\PhpGenerator\Parameter;
 
 class TablesGenerator extends Generator
 {
@@ -58,6 +61,7 @@ class TablesGenerator extends Generator
     public function generateActiveRow(Table $table): array
     {
         $className = $this->context->fileManager->getActiveRowName($table);
+        $classNameUser = $this->context->fileManager->getUserActiveRowName($table);
         $filePath = $this->context->fileManager->getActiveRowPath($table);
 
         $this->log("\t\t- {$className}");
@@ -86,49 +90,34 @@ class TablesGenerator extends Generator
 
             // Some properties are already defined in Nette\Database\Table\ActiveRow
             $name = $this->sanitizeVariable($column->name, isConstOrEnum: false);
-            $name = in_array($name, $this->activeRowProperties) ? $name . '_' : $name;
 
-            $property = $class->addProperty($name)->setType($type);
-
-            if ($column->comment) {
-                $property->addComment($column->comment);
-            }
-
-            if (str_contains($type, 'array')) {
-                $property->addComment('@phpstan-ignore missingType.iterableValue');
-            }
-
-            // Handle custom types
             $customType = $this->getCustomType($column);
-            foreach ($customType->annotations ?? [] as $annotation) {
-                $property->addComment($annotation);
-            }
 
             if ($customType?->castValueCallback !== null) {
                 $castValuesBody[] = "\$data['{$column->name}'] = " . ($customType->castValueCallback)($column) . ';';
             }
 
-            if ($type === 'bool') {
-                $property->addHook('get', '(bool) $this[\'' . $column->name . '\']');
+            if ($this->context->targetPhpVersion->isFeatureSupported(PhpVersion::PHP_84)) {
+                $name = in_array($name, $this->activeRowProperties) ? $name . '_' : $name;
 
-                continue;
+                $this->addPropertyHook(
+                    class: $class,
+                    name: $name,
+                    type: $type,
+                    column: $column,
+                    customType: $customType
+                );
+            } else {
+                $this->addClassAnnotation(class: $class, name: $name, type: $type, column: $column);
             }
-
-            if ($type === 'bool|null') {
-                $property->addHook('get', '$this[\'' . $column->name . '\'] !== null ? (bool) $this[\'' . $column->name . '\'] : null');
-
-                continue;
-            }
-
-            $property->addHook('get', '$this[\'' . $column->name . '\']');
         }
 
         if (!empty($castValuesBody)) {
             $class->getNamespace()?->addUse(Selection::class);
             $class->addMethod('__construct')
                 ->setParameters([
-                    (new \Nette\PhpGenerator\Parameter('data'))->setType('array'),
-                    (new \Nette\PhpGenerator\Parameter('selection'))->setType(Selection::class),
+                    (new Parameter('data'))->setType('array'),
+                    (new Parameter('selection'))->setType(Selection::class),
                 ])
                 ->setBody(
                     <<<'PHP'
@@ -137,16 +126,19 @@ class TablesGenerator extends Generator
                 parent::__construct($data, $selection);
                 PHP
                 )
-                ->addComment('@param array<string|int, mixed> $data')
+                ->addComment('@param array<string, mixed> $data')
+                ->addComment("@param Selection<\\{$classNameUser}> \$selection")
             ;
 
             $class->addMethod('castValues')
+                ->setVisibility('private')
                 ->setParameters([
-                    (new \Nette\PhpGenerator\Parameter('data'))->setType('array'),
+                    (new Parameter('data'))->setType('array'),
                 ])
                 ->setReturnType('array')
                 ->setBody(implode("\n", $castValuesBody) . "\n\nreturn \$data;")
-                ->addComment('@param array<string, mixed> $data')
+                ->addComment("@param array<string, mixed> \$data\n")
+                ->addComment('@return array<string, mixed>')
             ;
         }
 
@@ -209,5 +201,52 @@ class TablesGenerator extends Generator
             array: $this->context->reflection->getCustomTypes(),
             callback: static fn (CustomType $customType) => $customType->dbType === $column->type,
         )) ?: null;
+    }
+
+    /**
+     * Adds a property hook to the class for a specific column.
+     */
+    private function addPropertyHook(ClassType $class, string $name, string $type, Column $column, CustomType|null $customType): void
+    {
+        $property = $class->addProperty($name)->setType($type);
+
+        if ($column->comment) {
+            $property->addComment($column->comment);
+        }
+
+        if (str_contains($type, 'array')) {
+            $property->addComment('@phpstan-ignore missingType.iterableValue');
+        }
+
+        foreach ($customType->annotations ?? [] as $annotation) {
+            $property->addComment($annotation);
+        }
+
+        if ($type === 'bool') {
+            $property->addHook('get', '(bool) $this[\'' . $column->name . '\']');
+
+            return;
+        }
+
+        if ($type === 'bool|null') {
+            $property->addHook('get', '$this[\'' . $column->name . '\'] !== null ? (bool) $this[\'' . $column->name . '\'] : null');
+
+            return;
+        }
+
+        $property->addHook('get', '$this[\'' . $column->name . '\']');
+    }
+
+    /**
+     * Adds a class annotation with the column properties.
+     */
+    private function addClassAnnotation(ClassType $class, string $name, string $type, Column $column): void
+    {
+        $comment = "@property-read {$type} \${$name}";
+        if ($column->comment) {
+            $comment .= " {$column->comment}";
+        }
+
+        $class->addComment($comment);
     }
 }

@@ -12,7 +12,7 @@ use InvalidArgumentException;
 abstract readonly class TypeMapper
 {
     /** @var array<string, string> */
-    public const array BaseTypes = [];
+    public const BaseTypes = [];
 
     /**
      * @param T                 $reflection

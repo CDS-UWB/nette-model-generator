@@ -4,6 +4,7 @@ namespace Tests\Unit\Generators;
 
 use Cds\NetteModelGenerator\Data\Column;
 use Cds\NetteModelGenerator\Data\Table;
+use Cds\NetteModelGenerator\Enum\PhpVersion;
 use Cds\NetteModelGenerator\FileWriter;
 use Cds\NetteModelGenerator\GeneratorContext;
 use Cds\NetteModelGenerator\Logger;
@@ -37,7 +38,7 @@ abstract class GeneratorTestCase extends TestCase
     /**
      * @param Closure(string, bool): string $varNameSanitizer
      */
-    protected function createMysqlGeneratorContext(Closure|null $varNameSanitizer = null): GeneratorContext
+    protected function createMysqlGeneratorContext(Closure|null $varNameSanitizer = null, PhpVersion $targetPhpVersion = PhpVersion::PHP_84): GeneratorContext
     {
         $this->mysqlReflection->method('getTables')->willReturn($this->getTables());
         $this->mysqlReflection->method('getColumns')->willReturnCallback(fn (Table $table) => $this->getColumns($table));
@@ -49,6 +50,7 @@ abstract class GeneratorTestCase extends TestCase
             fileWriter: $this->fileWriter,
             logger: $this->createStub(Logger::class),
             varNameSanitizer: $varNameSanitizer,
+            targetPhpVersion: $targetPhpVersion,
         );
     }
 

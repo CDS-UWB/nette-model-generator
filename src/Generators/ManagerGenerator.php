@@ -233,35 +233,25 @@ class ManagerGenerator extends Generator
         ;
 
         $class->addMethod('insert')
-            ->setReturnType(ActiveRow::class)
+            ->setReturnType(ActiveRow::class . '|array|int')
             ->setParameters([
                 (new Parameter('data'))->setType('array'),
             ])
-            ->setBody(<<<'PHP'
-            $data = $this->table()->insert($data);
-            assert($data instanceof ActiveRow);
-            
-            return $data;
-            PHP)
-            ->addComment("Inserts a single row into the table and returns the record.\n")
+            ->setBody('return $this->table()->insert($data);')
+            ->addComment("Inserts a single row into the table and returns the ActiveRow if table has primary key,\nnumber of affected rows if table has no primary key,\nor original data as array if table has multi-column primary key without autoincrement.\n")
             ->addComment("@param array<string, mixed> \$data \n")
-            ->addComment('@return T')
+            ->addComment('@return T|array<string, mixed>|int')
         ;
 
         $class->addMethod('insertMultiple')
-            ->setReturnType(ActiveRow::class . '|iterable')
+            ->setReturnType(ActiveRow::class . '|array|int')
             ->setParameters([
                 (new Parameter('data'))->setType('iterable'),
             ])
-            ->setBody(<<<'PHP'
-            $data = $this->table()->insert($data);
-            assert($data instanceof ActiveRow || is_iterable($data));
-            
-            return $data;
-            PHP)
-            ->addComment("Inserts multiple rows into the table and returns the first ActiveRow if table has primary key, or original input data if table doesn't have primary key.\n")
+            ->setBody('return $this->table()->insert($data);')
+            ->addComment("Inserts multiple rows into the table and returns the first ActiveRow if table has primary key,\nnumber of affected rows if table has no primary key,\nor original data as array if table has multi-column primary key without autoincrement.\n")
             ->addComment("@param iterable<array<string, mixed>> \$data \n")
-            ->addComment('@return T|iterable<array<string, mixed>>')
+            ->addComment('@return T|array<array<string, mixed>>|int')
         ;
 
         $class->addMethod('update')

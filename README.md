@@ -43,9 +43,13 @@ Options:
     -i, --include-schema       [pgsql only] Include schema name in generated class names and paths (optional).
     -e, --namespace            Namespace for generated classes (default: App\\Model).
     -o, --omit-namespace-root  Namespace part ignored when generating PSR-4 structure for model (optional).
+    -v, --php-version          Target PHP version for generated code (default: 84). Allowed values are: 82, 83, 84.
 
   -h, --help      Display this help message.\n
 ```
+Use `--php-version` when you need the generator to produce code compatible with an older runtime. 
+Supported values are `82`, `83`, and `84`; the generator emits property hooks and constant types only when the target version supports them, otherwise it falls back to `@property-read` annotations.
+
 #### Generated Structure
 
 The generator creates the following directory structure:
@@ -115,8 +119,8 @@ See the table below for available methods:
 | `exists(array\|int\|string $primary): bool` | Checks if any row exists. |
 | `existsWhere(array $where): bool` | Checks if any row exists that matches the given conditions. |
 | `getUnique(string $column, array $where = []): array` | Fetches a list of unique values of a column from the table. |
-| `insert(array $data): ActiveRow` | Inserts a single row into the table and returns the record. |
-| `insertMultiple(iterable $data): ActiveRow\|iterable` | Inserts multiple rows into the table and returns the first ActiveRow if table has primary key, or original input data if table doesn't have primary key. |
+| `insert(array $data): ActiveRow\|array\|int` | Inserts a single row into the table and returns the record. |
+| `insertMultiple(iterable $data): ActiveRow\|array\|int` | Inserts multiple rows into the table and returns the first ActiveRow if table has primary key, or original input data if table doesn't have primary key. |
 | `update(mixed $primary, array $data): int` | Updates a single row by primary key value. |
 | `updateWhere(string\|array $where, iterable $data, mixed ...$params): int` | Updates rows that match the given conditions. |
 | `updateAll(iterable $data): int` | Updates all rows in the table. |
@@ -205,7 +209,7 @@ abstract class YourTableActiveRowBase extends ActiveRow
     /**
      * @param array<string, mixed> $data
      */
-    public function castValues(array $data): array
+    private function castValues(array $data): array
     {
         $data['your_column_name'] = $this['your_column_name'] !== null ? (new \DateTimeImmutable($this['your_column_name'])) : null;
 

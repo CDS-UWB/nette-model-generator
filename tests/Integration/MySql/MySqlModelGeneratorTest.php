@@ -6,6 +6,7 @@ namespace Tests\Integration\MySql;
 
 use Cds\NetteModelGenerator\Data\Column;
 use Cds\NetteModelGenerator\Data\CustomType;
+use Cds\NetteModelGenerator\Enum\PhpVersion;
 use Cds\NetteModelGenerator\FileWriter;
 use Cds\NetteModelGenerator\GeneratorContext;
 use Cds\NetteModelGenerator\ModelGenerator;
@@ -48,6 +49,35 @@ class MySqlModelGeneratorTest extends MySqlDatabaseTestCase
         $this->checkEnums($dir);
         $this->checkManagersBase($dir);
         $this->checkRowsBase($dir);
+        $this->checkExplorer($dir);
+    }
+
+    #[Test]
+    public function generateModelDefaultPhpLowerThan84(): void
+    {
+        $context = new GeneratorContext(
+            reflection: new MySqlReflection($this->connection, $this->dbName),
+            fileManager: new Psr4FileManager(
+                rootDir: $this->outputDir,
+                namespace: ['App', 'Model'],
+                includeSchema: false,
+            ),
+            fileWriter: new FileWriter(),
+            printer: new PsrPrinter(),
+            targetPhpVersion: PhpVersion::PHP_82,
+        );
+
+        $generator = new ModelGenerator();
+
+        iterator_to_array($generator->runDefault($context), false);
+
+        $dir = implode(DIRECTORY_SEPARATOR, $this->outputDir);
+
+        $this->checkColumns($dir, $this->getColumnTypes());
+        $this->checkEnums($dir);
+        $this->checkManagersBase($dir);
+        $this->checkRowsBaseForPhpLowerThan84($dir);
+        $this->checkExplorer($dir, typedConstant: false);
     }
 
     #[Test]
@@ -83,6 +113,7 @@ class MySqlModelGeneratorTest extends MySqlDatabaseTestCase
         $this->checkEnums($dir);
         $this->checkManagersBase($dir);
         $this->checkRowsBaseWithCustomTypes($dir);
+        $this->checkExplorer($dir);
     }
 
     /**

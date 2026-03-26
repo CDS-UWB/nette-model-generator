@@ -13,7 +13,7 @@ use DateTime;
  */
 readonly class PostgreSqlTypeMapper extends TypeMapper
 {
-    public const array BaseTypes = [
+    public const BaseTypes = [
         'void' => 'void',
         'smallint' => 'int',
         'integer' => 'int',

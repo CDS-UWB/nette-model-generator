@@ -6,6 +6,7 @@ namespace Cds\NetteModelGenerator\Generators;
 
 use Cds\NetteModelGenerator\Data\Column;
 use Cds\NetteModelGenerator\Data\Table;
+use Cds\NetteModelGenerator\Enum\PhpVersion;
 use Iterator;
 use Nette\Database\Conventions\DiscoveredConventions;
 use Nette\PhpGenerator\Parameter;
@@ -62,15 +63,17 @@ class DatabaseConventionsGenerator extends Generator
         $class->getNamespace()?->addUse(DiscoveredConventions::class);
 
         if (!empty($mapping)) {
-            $property = $class->addConstant('PrimaryKeys', $mapping)
-                ->setType('array')
+            $const = $class->addConstant('PrimaryKeys', $mapping)
                 ->setComment('@var array<string, string>')
                 ->setVisibility('protected')
             ;
+            if ($this->context->targetPhpVersion->isFeatureSupported(PhpVersion::PHP_83)) {
+                $const->setType('array');
+            }
 
             $class->addMethod('getPrimary')
                 ->setPublic()
-                ->setParameters([new Parameter('table')->setType('string')])
+                ->setParameters([(new Parameter('table'))->setType('string')])
                 ->setReturnType('string|array|null')
                 ->addBody(
                     <<<'PHP'

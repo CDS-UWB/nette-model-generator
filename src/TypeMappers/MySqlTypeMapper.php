@@ -10,7 +10,7 @@ use DateTime;
  */
 readonly class MySqlTypeMapper extends TypeMapper
 {
-    public const array BaseTypes = [
+    public const BaseTypes = [
         'integer' => 'int',
         'int' => 'int',
         'smallint' => 'int',

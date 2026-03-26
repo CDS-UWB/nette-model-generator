@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 require_once $_composer_autoload_path ?? __DIR__ . '/../vendor/autoload.php';
 
+use Cds\NetteModelGenerator\Enum\PhpVersion;
 use Cds\NetteModelGenerator\FileWriter;
 use Cds\NetteModelGenerator\GeneratorContext;
 use Cds\NetteModelGenerator\ModelGenerator;
@@ -15,7 +16,7 @@ use Cds\NetteModelGenerator\Reflections\PostgreSqlReflection;
 const AllowedDrivers = ['mysql', 'pgsql'];
 
 $options = getopt(
-    short_options: 'd:n:s:ir:e:o:H:D:U:P:p:h',
+    short_options: 'd:n:s:ir:e:o:H:D:U:P:p:v:h',
     long_options: [
         'driver:',
         'schemas:',
@@ -28,6 +29,7 @@ $options = getopt(
         'user:',
         'password:',
         'port:',
+        'php-version:',
         'help',
     ],
 );
@@ -93,6 +95,18 @@ if ($omitNamespaceRootInPath !== null && !str_contains($namespace, $omitNamespac
     printHelp();
 
     exit(1);
+}
+
+$targetPhpVersion = $options['v'] ?? $options['php-version'] ?? null;
+if ($targetPhpVersion !== null) {
+    $targetPhpVersion = PhpVersion::tryFrom((int) $targetPhpVersion);
+
+    if ($targetPhpVersion === null) {
+        printError('Invalid PHP version specified. Allowed values are: ' . implode(', ', array_map(static fn (PhpVersion $version) => $version->value, PhpVersion::cases())));
+        printHelp();
+
+        exit(1);
+    }
 }
 
 // Prepare a connection to the database.
@@ -178,6 +192,8 @@ function parseNamespace(string|null $namespace): array
 
 function printHelp(): void
 {
+    $versions = implode(', ', array_map(static fn (PhpVersion $version) => $version->value, PhpVersion::cases()));
+
     echo <<<HELP
     Usage: model-generator -d <mysql|pgsql> -H <host> -D <dbname> -U <user> -P <password> [optional options]
     Options:
@@ -195,6 +211,7 @@ function printHelp(): void
         -i, --include-schema       [pgsql only] Include schema name in generated class names and paths (optional).
         -e, --namespace            Namespace for generated classes (default: App\\Model).
         -o, --omit-namespace-root  Namespace part ignored when generating PSR-4 structure for model (optional).
+        -v, --php-version          Target PHP version for generated code (default: 84). Allowed values are: {$versions}.
 
       -h, --help      Display this help message.\n
     HELP;

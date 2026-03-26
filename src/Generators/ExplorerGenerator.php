@@ -2,6 +2,7 @@
 
 namespace Cds\NetteModelGenerator\Generators;
 
+use Cds\NetteModelGenerator\Enum\PhpVersion;
 use Nette\Database\Explorer;
 use Nette\Database\Table\ActiveRow;
 use Nette\Database\Table\Selection;
@@ -33,10 +34,11 @@ class ExplorerGenerator extends Generator
             ?->addUse(ActiveRow::class)
             ?->addUse(Selection::class)
         ;
-        $class->addConstant('ActiveRowNamespace', $activeRowNamespace)
-            ->setPrivate()
-            ->setType('string')
-        ;
+
+        $const = $class->addConstant('ActiveRowNamespace', $activeRowNamespace)->setPrivate();
+        if ($this->context->targetPhpVersion->isFeatureSupported(PhpVersion::PHP_83)) {
+            $const->setType('string');
+        }
 
         $class->addMethod('createActiveRow')
             ->setParameters([

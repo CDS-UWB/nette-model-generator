@@ -344,33 +344,31 @@ class ManagerGeneratorTest extends GeneratorTestCase
                 }
 
                 /**
-                 * Inserts a single row into the table and returns the record.
+                 * Inserts a single row into the table and returns the ActiveRow if table has primary key,
+                 * number of affected rows if table has no primary key,
+                 * or original data as array if table has multi-column primary key without autoincrement.
                  *
                  * @param array<string, mixed> $data
                  *
-                 * @return T
+                 * @return T|array<string, mixed>|int
                  */
-                public function insert(array $data): ActiveRow
+                public function insert(array $data): ActiveRow|array|int
                 {
-                    $data = $this->table()->insert($data);
-                    assert($data instanceof ActiveRow);
-
-                    return $data;
+                    return $this->table()->insert($data);
                 }
 
                 /**
-                 * Inserts multiple rows into the table and returns the first ActiveRow if table has primary key, or original input data if table doesn't have primary key.
+                 * Inserts multiple rows into the table and returns the first ActiveRow if table has primary key,
+                 * number of affected rows if table has no primary key,
+                 * or original data as array if table has multi-column primary key without autoincrement.
                  *
                  * @param iterable<array<string, mixed>> $data
                  *
-                 * @return T|iterable<array<string, mixed>>
+                 * @return T|array<array<string, mixed>>|int
                  */
-                public function insertMultiple(iterable $data): ActiveRow|iterable
+                public function insertMultiple(iterable $data): ActiveRow|array|int
                 {
-                    $data = $this->table()->insert($data);
-                    assert($data instanceof ActiveRow || is_iterable($data));
-
-                    return $data;
+                    return $this->table()->insert($data);
                 }
 
                 /**

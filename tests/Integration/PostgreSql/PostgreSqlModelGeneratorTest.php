@@ -6,12 +6,14 @@ namespace Tests\Integration\PostgreSql;
 
 use Cds\NetteModelGenerator\Data\Column;
 use Cds\NetteModelGenerator\Data\CustomType;
+use Cds\NetteModelGenerator\Enum\PhpVersion;
 use Cds\NetteModelGenerator\FileWriter;
 use Cds\NetteModelGenerator\GeneratorContext;
 use Cds\NetteModelGenerator\ModelGenerator;
 use Cds\NetteModelGenerator\Psr4FileManager;
 use Cds\NetteModelGenerator\Reflections\PostgreSqlReflection;
 use Nette\PhpGenerator\PsrPrinter;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Integration\Trait\CheckResults;
 use Tests\Integration\Trait\OutputDir;
@@ -48,6 +50,47 @@ class PostgreSqlModelGeneratorTest extends PostgreSqlDatabaseTestCase
         $this->checkEnums($dir, enumPrefix: '');
         $this->checkManagersBase($dir, $this->schema . '.');
         $this->checkRowsBase($dir);
+        $this->checkExplorer($dir);
+    }
+
+    #[Test]
+    #[DataProvider('providePhpVersionsLowerThan84')]
+    public function generateModelDefaultPhpLowerThan84(PhpVersion $phpVersion, bool $typedConsts): void
+    {
+        $context = new GeneratorContext(
+            reflection: new PostgreSqlReflection($this->connection, $this->dbName, schemas: [$this->schema]),
+            fileManager: new Psr4FileManager(
+                rootDir: $this->outputDir,
+                namespace: ['App', 'Model'],
+                includeSchema: false,
+            ),
+            fileWriter: new FileWriter(),
+            printer: new PsrPrinter(),
+            targetPhpVersion: $phpVersion,
+        );
+
+        $generator = new ModelGenerator();
+
+        iterator_to_array($generator->runDefault($context), false);
+
+        $dir = implode(DIRECTORY_SEPARATOR, $this->outputDir);
+
+        $this->checkColumns($dir, $this->getColumnTypes());
+        $this->checkEnums($dir, enumPrefix: '');
+        $this->checkManagersBase($dir, $this->schema . '.');
+        $this->checkRowsBaseForPhpLowerThan84($dir);
+        $this->checkExplorer($dir, typedConstant: $typedConsts);
+    }
+
+    /**
+     * @return array<array{PhpVersion, bool}>
+     */
+    public static function providePhpVersionsLowerThan84(): array
+    {
+        return [
+            [PhpVersion::PHP_82, false],
+            [PhpVersion::PHP_83, true],
+        ];
     }
 
     #[Test]
@@ -83,6 +126,7 @@ class PostgreSqlModelGeneratorTest extends PostgreSqlDatabaseTestCase
         $this->checkEnums($dir, enumPrefix: '');
         $this->checkManagersBase($dir, $this->schema . '.');
         $this->checkRowsBaseWithCustomTypes($dir);
+        $this->checkExplorer($dir);
     }
 
     /**
