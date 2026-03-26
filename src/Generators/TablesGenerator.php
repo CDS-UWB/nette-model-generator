@@ -61,7 +61,6 @@ class TablesGenerator extends Generator
     public function generateActiveRow(Table $table): array
     {
         $className = $this->context->fileManager->getActiveRowName($table);
-        $classNameUser = $this->context->fileManager->getUserActiveRowName($table);
         $filePath = $this->context->fileManager->getActiveRowPath($table);
 
         $this->log("\t\t- {$className}");
@@ -108,7 +107,13 @@ class TablesGenerator extends Generator
                     customType: $customType
                 );
             } else {
-                $this->addClassAnnotation(class: $class, name: $name, type: $type, column: $column);
+                $this->addClassAnnotation(
+                    class: $class,
+                    name: $name,
+                    type: $type,
+                    column: $column,
+                    customType: $customType
+                );
             }
         }
 
@@ -127,7 +132,7 @@ class TablesGenerator extends Generator
                 PHP
                 )
                 ->addComment('@param array<string, mixed> $data')
-                ->addComment("@param Selection<\\{$classNameUser}> \$selection")
+                ->addComment("@param Selection<covariant \\{$className}> \$selection")
             ;
 
             $class->addMethod('castValues')
@@ -240,7 +245,7 @@ class TablesGenerator extends Generator
     /**
      * Adds a class annotation with the column properties.
      */
-    private function addClassAnnotation(ClassType $class, string $name, string $type, Column $column): void
+    private function addClassAnnotation(ClassType $class, string $name, string $type, Column $column, CustomType|null $customType): void
     {
         $comment = "@property-read {$type} \${$name}";
         if ($column->comment) {

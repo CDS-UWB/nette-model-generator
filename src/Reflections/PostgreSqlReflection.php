@@ -141,13 +141,11 @@ readonly class PostgreSqlReflection implements Reflection
      */
     public function getEnums(): Iterator
     {
-        $enums = [];
-
         $data = $this->connection->query(<<<'SQL'
             SELECT
                 nspname AS "schema",
                 typname AS "name",
-                string_agg(enumlabel, ',') AS "values"
+                string_agg(enumlabel, ',' ORDER BY enumlabel ASC) AS "values"
             FROM pg_type
                 LEFT JOIN pg_namespace ON pg_type.typnamespace = pg_namespace.oid
                 LEFT JOIN pg_enum ON pg_enum.enumtypid = pg_type.oid
@@ -156,11 +154,11 @@ readonly class PostgreSqlReflection implements Reflection
             ORDER BY "typname"
         SQL, $this->schemas)->fetchAll();
 
-        $enums = array_merge($enums, array_map(static fn (Row $row) => new Enum(
+        $enums = array_map(static fn (Row $row) => new Enum(
             name: $row->name,
             schema: $row->schema,
             values: explode(',', $row->values),
-        ), $data));
+        ), $data);
 
         return (new \ArrayObject($enums))->getIterator();
     }

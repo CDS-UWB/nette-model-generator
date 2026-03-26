@@ -351,7 +351,7 @@ class TablesGeneratorTest extends GeneratorTestCase
 
                 /**
                  * @param array<string, mixed> $data
-                 * @param Selection<\App\Model\Rows\TestTableActiveRow> $selection
+                 * @param Selection<covariant \App\Model\Generated\Rows\TestTableActiveRowBase> $selection
                  */
                 public function __construct(array $data, Selection $selection)
                 {

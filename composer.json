@@ -28,7 +28,7 @@
         }
     },
     "require": {
-        "php": "^8.2|^8.3|^8.4",
+        "php": "^8.2 || ^8.3 || ^8.4",
         "nette/database": "^3.2",
         "nette/php-generator": "^4.2"
     },
@@ -38,6 +38,6 @@
         "phpstan/phpstan": "^2.1",
         "phpstan/phpstan-nette": "^2.0",
         "phpstan/phpstan-phpunit": "^2.0",
-        "phpunit/phpunit": "^13"
+        "phpunit/phpunit": "^11.5"
     }
 }

@@ -786,7 +786,7 @@ trait CheckResults
 
                     /**
                      * @param array<string, mixed> $data
-                     * @param Selection<\App\Model\Rows\TestDateTimeColumnsActiveRow> $selection
+                     * @param Selection<covariant \App\Model\Generated\Rows\TestDateTimeColumnsActiveRowBase> $selection
                      */
                     public function __construct(array $data, Selection $selection)
                     {
