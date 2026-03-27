@@ -170,6 +170,7 @@ class ManagerGeneratorTest extends GeneratorTestCase
 
             namespace App\Model\Generated;
 
+            use Nette\Database\Explorer;
             use Nette\Database\ResultSet;
             use Nette\Database\Table\ActiveRow;
             use Nette\Database\Table\Selection;

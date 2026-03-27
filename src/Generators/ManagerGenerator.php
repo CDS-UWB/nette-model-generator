@@ -3,6 +3,7 @@
 namespace Cds\NetteModelGenerator\Generators;
 
 use Cds\NetteModelGenerator\Data\Table;
+use Nette\Database\Explorer;
 use Nette\Database\ResultSet;
 use Nette\Database\Table\ActiveRow;
 use Nette\Database\Table\Selection;
@@ -52,12 +53,13 @@ class ManagerGenerator extends Generator
             ?->addUse(ActiveRow::class)
             ?->addUse(Selection::class)
             ?->addUse(ResultSet::class)
+            ?->addUse(Explorer::class)
         ;
 
         $class->addMethod('__construct')
             ->setParameters([
                 (new PromotedParameter('explorer'))
-                    ->setType($this->context->fileManager->getExplorerName())
+                    ->setType(Explorer::class)
                     ->setVisibility('public')
                     ->setReadOnly(),
             ])
