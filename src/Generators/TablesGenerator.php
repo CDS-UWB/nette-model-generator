@@ -81,7 +81,8 @@ class TablesGenerator extends Generator
                 throw new \InvalidArgumentException("Invalid column name: {$column->name}");
             }
 
-            $type = $this->context->reflection->getTypeMapper()->toPhp($column->type, $column->size);
+            $customType = $this->getCustomType($column);
+            $type = $customType?->getPhpTypeWithoutGeneric() ?? $this->context->reflection->getTypeMapper()->toPhp($column->type, $column->size);
 
             if ($column->nullable) {
                 $type = "{$type}|null";
@@ -89,8 +90,6 @@ class TablesGenerator extends Generator
 
             // Some properties are already defined in Nette\Database\Table\ActiveRow
             $name = $this->sanitizeVariable($column->name, isConstOrEnum: false);
-
-            $customType = $this->getCustomType($column);
 
             if ($customType?->castValueCallback !== null) {
                 $castValuesBody[] = "\$data['{$column->name}'] = " . ($customType->castValueCallback)($column) . ';';
@@ -227,6 +226,16 @@ class TablesGenerator extends Generator
             $property->addComment($annotation);
         }
 
+        if ($customType !== null && $customType->phpType !== $customType->getPhpTypeWithoutGeneric()) {
+            $annotation = "@var {$customType->phpType}";
+
+            if ($column->nullable && !str_contains($annotation, 'null')) {
+                $annotation .= '|null';
+            }
+
+            $property->addComment("{$annotation}");
+        }
+
         if ($type === 'bool') {
             $property->addHook('get', '(bool) $this[\'' . $column->name . '\']');
 
@@ -247,9 +256,21 @@ class TablesGenerator extends Generator
      */
     private function addClassAnnotation(ClassType $class, string $name, string $type, Column $column, CustomType|null $customType): void
     {
+        if ($customType !== null && $customType->phpType !== $customType->getPhpTypeWithoutGeneric()) {
+            $type = $customType->phpType;
+
+            if ($column->nullable && !str_contains($type, 'null')) {
+                $type .= '|null';
+            }
+        }
+
         $comment = "@property-read {$type} \${$name}";
         if ($column->comment) {
             $comment .= " {$column->comment}";
+        }
+
+        if ($customType !== null && !empty($customType->annotations)) {
+            $comment .= ', ' . implode(' ', $customType->annotations);
         }
 
         $class->addComment($comment);

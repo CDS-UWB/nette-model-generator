@@ -25,7 +25,7 @@ composer require --dev cds-uwb/nette-model-generator
 ## Usage
 
 ### Generating models
-Use provided `bin/model-generator` script to generate models from your database schema.
+Use provided `bin/cds-model-generator` script to generate models from your database schema.
 ```text
 Usage: model-generator -d <mysql|pgsql> -H <host> -D <dbname> -U <user> -P <password> [optional options]
 Options:
@@ -152,11 +152,16 @@ class YourService
 ```
 
 ### Custom types
-Use `Cds\NetteModelGenerator\Data\CustomType` to override how database column types are mapped
-to generated properties. You pass custom types through your reflection constructor when you
-build a `GeneratorContext` inside your build script.
+Use `Cds\NetteModelGenerator\Data\CustomType` to override how database column types are mapped to generated properties.
+Pass your custom types through the reflection constructor when you build a `GeneratorContext` in your build script.
+
+`CustomType::phpType` supports PHPStan-compatible generic signatures (e.g. `ArrayObject<int, DateTimeImmutable>`).
+The generator keeps the base type (without generics) for the getter and emits a `@var` annotation so static analyzers still
+see the full signature.
 
 ```php
+use ArrayObject;
+use DateTimeImmutable;
 use Cds\NetteModelGenerator\Data\CustomType;
 use Cds\NetteModelGenerator\Generators\ModelGenerator;
 use Cds\NetteModelGenerator\GeneratorContext;
@@ -168,10 +173,13 @@ use Nette\PhpGenerator\PsrPrinter;
 $customTypes = [
     new CustomType(
         dbType: 'date',
-        phpType: '\\' . DateTime::class,
-        annotations: ['custom comment', '@annotation'],
-        castValueCallback: static fn (string $columnName): string => 
-            "\$this['" . $columnName . "'] !== null ? (new \DateTimeImmutable(\$this['" . $columnName . "'])) : null",
+        phpType: '\\' . ArrayObject::class . '<int, \\' . DateTimeImmutable::class . '>',
+        annotations: [
+            "custom comment\n",
+            '@phpstan-ignore property.unusedType',
+        ],
+        castValueCallback: static fn (string $columnName): string =>
+            "\$data['" . $columnName . "'] !== null ? new \\ArrayObject([new \\DateTimeImmutable(\$data['" . $columnName . "']])) : null",
     ),
 ];
 
@@ -184,15 +192,16 @@ $context = new GeneratorContext(
 
 (new ModelGenerator())->runDefault($context);
 
-// The generated base row keeps the property getter untouched and handles casting via constructor hooks:
+// The generated base row keeps the getter signature and performs casting via constructor hooks:
 abstract class YourTableActiveRowBase extends ActiveRow
 {
     /**
      * custom comment
      *
-     * @annotation
+     * @phpstan-ignore property.unusedType
+     * @var \ArrayObject<int, \DateTimeImmutable>
      */
-    public \DateTime|null $yourColumnName {
+    public \ArrayObject $yourColumnName {
         get => $this['your_column_name'];
     }
 
@@ -211,7 +220,7 @@ abstract class YourTableActiveRowBase extends ActiveRow
      */
     private function castValues(array $data): array
     {
-        $data['your_column_name'] = $this['your_column_name'] !== null ? (new \DateTimeImmutable($this['your_column_name'])) : null;
+        $data['your_column_name'] = $data['your_column_name'] !== null ? new \ArrayObject([new \DateTimeImmutable($data['your_column_name'])]) : null;
 
         return $data;
     }

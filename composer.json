@@ -8,7 +8,7 @@
         "sort-packages": true
     },
     "bin": [
-        "bin/model-generator"
+        "bin/cds-model-generator"
     ],
     "scripts": {
         "phpstan": "phpstan analyse --memory-limit=256M",

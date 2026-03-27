@@ -89,7 +89,7 @@ abstract class GeneratorTestCase extends TestCase
                 name: 'date_column',
                 type: 'datetime',
                 primary: false,
-                nullable: false,
+                nullable: true,
                 autoIncrement: false,
                 comment: 'date column comment'
             ),
