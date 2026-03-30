@@ -51,6 +51,21 @@ class ManagerGenerator extends Generator
         $class->setAbstract();
         $class->getNamespace()
             ?->addUse(ActiveRow::class)
+        ;
+
+        // We are extending existing manager class, so we do not have to generate all the methods.
+        if ($this->context->managerClass !== null) {
+            $class->setExtends($this->context->managerClass);
+            $class->addComment("\n@extend {$this->context->managerClass}<T>");
+
+            if ($this->writeFile($filePath, $file)) {
+                return [$filePath];
+            }
+
+            return [];
+        }
+
+        $class->getNamespace()
             ?->addUse(Selection::class)
             ?->addUse(ResultSet::class)
             ?->addUse(Explorer::class)

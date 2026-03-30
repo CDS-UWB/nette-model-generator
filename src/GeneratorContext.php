@@ -11,7 +11,8 @@ use Nette\PhpGenerator\PsrPrinter;
 final readonly class GeneratorContext
 {
     /**
-     * @param Closure(string, bool): string $varNameSanitizer
+     * @param Closure(string, bool): string $varNameSanitizer global variable name sanitizer
+     * @param class-string                  $managerClass     custom Manager class; when provided, the generated manager extends it and omits method generation
      */
     public function __construct(
         public Reflection $reflection,
@@ -20,7 +21,8 @@ final readonly class GeneratorContext
         public Printer $printer = new PsrPrinter(),
         public Logger $logger = new Logger(),
         public Closure|null $varNameSanitizer = null,
-        public PhpVersion $targetPhpVersion = PhpVersion::PHP_84
+        public PhpVersion $targetPhpVersion = PhpVersion::PHP_84,
+        public string|null $managerClass = null,
     ) {
     }
 }
