@@ -38,11 +38,13 @@ abstract class GeneratorTestCase extends TestCase
     /**
      * @param Closure(string, bool): string $varNameSanitizer
      * @param class-string|null             $managerClass
+     * @param class-string|null             $explorerClass
      */
     protected function createMysqlGeneratorContext(
         Closure|null $varNameSanitizer = null,
         PhpVersion $targetPhpVersion = PhpVersion::PHP_84,
         string|null $managerClass = null,
+        string|null $explorerClass = null,
     ): GeneratorContext {
         $this->mysqlReflection->method('getTables')->willReturn($this->getTables());
         $this->mysqlReflection->method('getColumns')->willReturnCallback(fn (Table $table) => $this->getColumns($table));
@@ -56,6 +58,7 @@ abstract class GeneratorTestCase extends TestCase
             varNameSanitizer: $varNameSanitizer,
             targetPhpVersion: $targetPhpVersion,
             managerClass: $managerClass,
+            explorerClass: $explorerClass,
         );
     }
 

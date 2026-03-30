@@ -204,7 +204,6 @@ class ManagerGeneratorTest extends GeneratorTestCase
 
             namespace App\Model\Generated;
 
-            use Nette\Database\Explorer;
             use Nette\Database\ResultSet;
             use Nette\Database\Table\ActiveRow;
             use Nette\Database\Table\Selection;
@@ -219,6 +218,7 @@ class ManagerGeneratorTest extends GeneratorTestCase
                 public function __construct(
                     public readonly Explorer $explorer,
                 ) {
+                    $explorer->registerNamespace('App\Model\Rows');
                 }
 
                 /**
@@ -595,6 +595,13 @@ class ManagerGeneratorTest extends GeneratorTestCase
              */
             abstract class Manager extends \Some\Manager
             {
+                public function __construct(
+                    public readonly Explorer $explorer,
+                ) {
+                    parent::__construct($explorer);
+
+                    $explorer->registerNamespace('App\Model\Rows');
+                }
             }
 
             PHP,

@@ -227,8 +227,9 @@ abstract class YourTableActiveRowBase extends ActiveRow
 }
 ```
 
-### Custom Manager base classes
-You can make generated classes extend existing base implementations by setting `managerClass` in `GeneratorContext`.
+### Custom Explorer and Manager base classes
+You can make generated classes extend existing base implementations by setting `managerClass` or `explorerClass` in `GeneratorContext`.
 This is useful i.e. when you have a base library that provides common functionality with model generated using this tool and you need your application to extend it.
 
 - `managerClass`: generated `Manager` extends this class and skips generating CRUD methods.
+- `explorerClass`: generated `Explorer` extends this class.

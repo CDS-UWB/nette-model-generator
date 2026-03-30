@@ -55,7 +55,7 @@ class PostgreSqlModelGeneratorTest extends PostgreSqlDatabaseTestCase
 
     #[Test]
     #[DataProvider('providePhpVersionsLowerThan84')]
-    public function generateModelDefaultPhpLowerThan84(PhpVersion $phpVersion, bool $typedConsts): void
+    public function generateModelDefaultPhpLowerThan84(PhpVersion $phpVersion): void
     {
         $context = new GeneratorContext(
             reflection: new PostgreSqlReflection($this->connection, $this->dbName, schemas: [$this->schema]),
@@ -79,17 +79,17 @@ class PostgreSqlModelGeneratorTest extends PostgreSqlDatabaseTestCase
         $this->checkEnums($dir, enumPrefix: '');
         $this->checkManagersBase($dir, $this->schema . '.');
         $this->checkRowsBaseForPhpLowerThan84($dir);
-        $this->checkExplorer($dir, typedConstant: $typedConsts);
+        $this->checkExplorer($dir);
     }
 
     /**
-     * @return array<array{PhpVersion, bool}>
+     * @return array<array{PhpVersion}>
      */
     public static function providePhpVersionsLowerThan84(): array
     {
         return [
-            [PhpVersion::PHP_82, false],
-            [PhpVersion::PHP_83, true],
+            [PhpVersion::PHP_82],
+            [PhpVersion::PHP_83],
         ];
     }
 
@@ -127,6 +127,56 @@ class PostgreSqlModelGeneratorTest extends PostgreSqlDatabaseTestCase
         $this->checkManagersBase($dir, $this->schema . '.');
         $this->checkRowsBaseWithCustomTypes($dir);
         $this->checkExplorer($dir);
+    }
+
+    #[Test]
+    public function generateModelWithCustomManagerClass(): void
+    {
+        $context = new GeneratorContext(
+            reflection: new PostgreSqlReflection($this->connection, $this->dbName, schemas: [$this->schema]),
+            fileManager: new Psr4FileManager(
+                rootDir: $this->outputDir,
+                namespace: ['App', 'Model'],
+                includeSchema: false,
+            ),
+            fileWriter: new FileWriter(),
+            printer: new PsrPrinter(),
+            // @phpstan-ignore argument.type
+            managerClass: '\\Some\\Manager',
+        );
+
+        $generator = new ModelGenerator();
+
+        iterator_to_array($generator->runDefault($context), false);
+
+        $dir = implode(DIRECTORY_SEPARATOR, $this->outputDir);
+
+        $this->checkManagerExtends($dir, '\\Some\\Manager');
+    }
+
+    #[Test]
+    public function generateModelWithCustomExplorerClass(): void
+    {
+        $context = new GeneratorContext(
+            reflection: new PostgreSqlReflection($this->connection, $this->dbName, schemas: [$this->schema]),
+            fileManager: new Psr4FileManager(
+                rootDir: $this->outputDir,
+                namespace: ['App', 'Model'],
+                includeSchema: false,
+            ),
+            fileWriter: new FileWriter(),
+            printer: new PsrPrinter(),
+            // @phpstan-ignore argument.type
+            explorerClass: '\\Some\\Explorer',
+        );
+
+        $generator = new ModelGenerator();
+
+        iterator_to_array($generator->runDefault($context), false);
+
+        $dir = implode(DIRECTORY_SEPARATOR, $this->outputDir);
+
+        $this->checkExplorerExtends($dir, '\\Some\\Explorer');
     }
 
     /**

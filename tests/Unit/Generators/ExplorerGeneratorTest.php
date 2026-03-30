@@ -2,7 +2,6 @@
 
 namespace Tests\Unit\Generators;
 
-use Cds\NetteModelGenerator\Enum\PhpVersion;
 use Cds\NetteModelGenerator\Generators\ExplorerGenerator;
 use Nette\PhpGenerator\PhpFile;
 use Nette\PhpGenerator\Printer;
@@ -37,7 +36,8 @@ class ExplorerGeneratorTest extends GeneratorTestCase
 
             class Explorer extends \Nette\Database\Explorer
             {
-                private const string ActiveRowNamespace = 'App\Model\Rows';
+                /** @var list<string> */
+                protected array $namespaces = [];
 
                 /**
                  * @param array<string|int, mixed> $data
@@ -53,6 +53,13 @@ class ExplorerGeneratorTest extends GeneratorTestCase
                     }
 
                     return $row;
+                }
+
+                public function registerNamespace(string $namespace): void
+                {
+                    if (!in_array($namespace, $this->namespaces)){
+                        $this->namespaces[] = $namespace;
+                    }
                 }
 
                 protected function tableToClass(string $tableName): string
@@ -78,18 +85,24 @@ class ExplorerGeneratorTest extends GeneratorTestCase
                  */
                 protected function getPossibleClassNames(string $tableName): array
                 {
-                    if (!str_contains($tableName, '.')){
-                        return [self::ActiveRowNamespace . '\\' . $this->snakeToPascalCase($tableName) . 'ActiveRow'];
+                    $result = [];
+
+                    foreach ($this->namespaces as $namespace)
+                    {
+                        if (!str_contains($tableName, '.')) {
+                            $result[] = $namespace . '\\' . $this->snakeToPascalCase($tableName) . 'ActiveRow';
+                            continue;
+                        }
+
+                        $parts = explode('.', $tableName);
+                        $className = array_pop($parts);
+                        $classNameWithSchema = str_replace('.', '\\', $tableName);
+
+                        $result[] = $namespace . '\\' . $this->snakeToPascalCase($classNameWithSchema) . 'ActiveRow';
+                        $result[] = $namespace . '\\' . $this->snakeToPascalCase($className) . 'ActiveRow';
                     }
 
-                    $parts = explode('.', $tableName);
-                    $className = array_pop($parts);
-                    $classNameWithSchema = str_replace('.', '\\', $tableName);
-
-                    return [
-                        self::ActiveRowNamespace . '\\' . $this->snakeToPascalCase($classNameWithSchema) . 'ActiveRow',
-                        self::ActiveRowNamespace . '\\' . $this->snakeToPascalCase($className) . 'ActiveRow',
-                    ];
+                    return $result;
                 }
             }
 
@@ -107,7 +120,7 @@ class ExplorerGeneratorTest extends GeneratorTestCase
     }
 
     #[Test]
-    public function generateForPhpLowerThan83(): void
+    public function generateExtends(): void
     {
         $this->fileWriter->method('writeFile')->willReturnCallback(static function (string $path, PhpFile $content, Printer $printer) {
             self::assertEquals(self::GeneratedDir . '/App/Model/Generated/Explorer.php', $path);
@@ -125,65 +138,8 @@ class ExplorerGeneratorTest extends GeneratorTestCase
 
             namespace App\Model\Generated;
 
-            use Nette\Database\Table\ActiveRow;
-            use Nette\Database\Table\Selection;
-
-            class Explorer extends \Nette\Database\Explorer
+            class Explorer extends \Some\Explorer
             {
-                private const ActiveRowNamespace = 'App\Model\Rows';
-
-                /**
-                 * @param array<string|int, mixed> $data
-                 * @phpstan-ignore missingType.generics
-                 */
-                public function createActiveRow(array $data, Selection $selection): ActiveRow
-                {
-                    $class = $this->tableToClass($selection->getName());
-                    $row = new $class($data, $selection);
-
-                    if (!$row instanceof ActiveRow) {
-                        throw new \LogicException('ActiveRow must be instance of ' . ActiveRow::class);
-                    }
-
-                    return $row;
-                }
-
-                protected function tableToClass(string $tableName): string
-                {
-                    $possibleClasses = $this->getPossibleClassNames($tableName);
-
-                    foreach ($possibleClasses as $class) {
-                        if (class_exists($class)) {
-                            return $class;
-                        }
-                    }
-
-                    return ActiveRow::class;
-                }
-
-                protected function snakeToPascalCase(string $input): string
-                {
-                    return str_replace('_', '', mb_convert_case($input, MB_CASE_TITLE, 'UTF-8'));
-                }
-
-                /**
-                 * @return list<string>
-                 */
-                protected function getPossibleClassNames(string $tableName): array
-                {
-                    if (!str_contains($tableName, '.')){
-                        return [self::ActiveRowNamespace . '\\' . $this->snakeToPascalCase($tableName) . 'ActiveRow'];
-                    }
-
-                    $parts = explode('.', $tableName);
-                    $className = array_pop($parts);
-                    $classNameWithSchema = str_replace('.', '\\', $tableName);
-
-                    return [
-                        self::ActiveRowNamespace . '\\' . $this->snakeToPascalCase($classNameWithSchema) . 'ActiveRow',
-                        self::ActiveRowNamespace . '\\' . $this->snakeToPascalCase($className) . 'ActiveRow',
-                    ];
-                }
             }
 
             PHP,
@@ -193,7 +149,8 @@ class ExplorerGeneratorTest extends GeneratorTestCase
             return true;
         });
 
-        $generator = new ExplorerGenerator($this->createMysqlGeneratorContext(targetPhpVersion: PhpVersion::PHP_82));
+        // @phpstan-ignore argument.type
+        $generator = new ExplorerGenerator($this->createMysqlGeneratorContext(explorerClass: '\\Some\\Explorer'));
         $processedFiles = iterator_to_array($generator->generate());
 
         self::assertCount(1, $processedFiles);

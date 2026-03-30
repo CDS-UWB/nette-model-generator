@@ -77,7 +77,7 @@ class MySqlModelGeneratorTest extends MySqlDatabaseTestCase
         $this->checkEnums($dir);
         $this->checkManagersBase($dir);
         $this->checkRowsBaseForPhpLowerThan84($dir);
-        $this->checkExplorer($dir, typedConstant: false);
+        $this->checkExplorer($dir);
     }
 
     #[Test]
@@ -114,6 +114,56 @@ class MySqlModelGeneratorTest extends MySqlDatabaseTestCase
         $this->checkManagersBase($dir);
         $this->checkRowsBaseWithCustomTypes($dir);
         $this->checkExplorer($dir);
+    }
+
+    #[Test]
+    public function generateModelWithCustomManagerClass(): void
+    {
+        $context = new GeneratorContext(
+            reflection: new MySqlReflection($this->connection, $this->dbName),
+            fileManager: new Psr4FileManager(
+                rootDir: $this->outputDir,
+                namespace: ['App', 'Model'],
+                includeSchema: false,
+            ),
+            fileWriter: new FileWriter(),
+            printer: new PsrPrinter(),
+            // @phpstan-ignore argument.type
+            managerClass: '\\Some\\Manager',
+        );
+
+        $generator = new ModelGenerator();
+
+        iterator_to_array($generator->runDefault($context), false);
+
+        $dir = implode(DIRECTORY_SEPARATOR, $this->outputDir);
+
+        $this->checkManagerExtends($dir, '\\Some\\Manager');
+    }
+
+    #[Test]
+    public function generateModelWithCustomExplorerClass(): void
+    {
+        $context = new GeneratorContext(
+            reflection: new MySqlReflection($this->connection, $this->dbName),
+            fileManager: new Psr4FileManager(
+                rootDir: $this->outputDir,
+                namespace: ['App', 'Model'],
+                includeSchema: false,
+            ),
+            fileWriter: new FileWriter(),
+            printer: new PsrPrinter(),
+            // @phpstan-ignore argument.type
+            explorerClass: '\\Some\\Explorer',
+        );
+
+        $generator = new ModelGenerator();
+
+        iterator_to_array($generator->runDefault($context), false);
+
+        $dir = implode(DIRECTORY_SEPARATOR, $this->outputDir);
+
+        $this->checkExplorerExtends($dir, '\\Some\\Explorer');
     }
 
     /**

@@ -3,7 +3,6 @@
 namespace Cds\NetteModelGenerator\Generators;
 
 use Cds\NetteModelGenerator\Data\Table;
-use Nette\Database\Explorer;
 use Nette\Database\ResultSet;
 use Nette\Database\Table\ActiveRow;
 use Nette\Database\Table\Selection;
@@ -40,6 +39,8 @@ class ManagerGenerator extends Generator
     {
         $name = $this->context->fileManager->getManagerName();
         $filePath = $this->context->fileManager->getManagerPath();
+        $activeRowNamespace = $this->context->fileManager->getActiveRowNamespace();
+        $explorerClass = $this->context->fileManager->getExplorerName();
 
         $this->log("\t- {$name}");
 
@@ -53,10 +54,26 @@ class ManagerGenerator extends Generator
             ?->addUse(ActiveRow::class)
         ;
 
+        $constructor = $class->addMethod('__construct')
+            ->setParameters([
+                (new PromotedParameter('explorer'))
+                    ->setType($explorerClass)
+                    ->setVisibility('public')
+                    ->setReadOnly(),
+            ])
+            ->setBody("\$explorer->registerNamespace('{$activeRowNamespace}');")
+        ;
+
         // We are extending existing manager class, so we do not have to generate all the methods.
         if ($this->context->managerClass !== null) {
             $class->setExtends($this->context->managerClass);
             $class->addComment("\n@extend {$this->context->managerClass}<T>");
+
+            $constructor->setBody(<<<PHP
+            parent::__construct(\$explorer);
+
+            \$explorer->registerNamespace('{$activeRowNamespace}');
+            PHP);
 
             if ($this->writeFile($filePath, $file)) {
                 return [$filePath];
@@ -68,16 +85,6 @@ class ManagerGenerator extends Generator
         $class->getNamespace()
             ?->addUse(Selection::class)
             ?->addUse(ResultSet::class)
-            ?->addUse(Explorer::class)
-        ;
-
-        $class->addMethod('__construct')
-            ->setParameters([
-                (new PromotedParameter('explorer'))
-                    ->setType(Explorer::class)
-                    ->setVisibility('public')
-                    ->setReadOnly(),
-            ])
         ;
 
         $class->addMethod('query')

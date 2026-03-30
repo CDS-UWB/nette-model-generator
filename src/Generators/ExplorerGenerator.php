@@ -2,7 +2,6 @@
 
 namespace Cds\NetteModelGenerator\Generators;
 
-use Cds\NetteModelGenerator\Enum\PhpVersion;
 use Nette\Database\Explorer;
 use Nette\Database\Table\ActiveRow;
 use Nette\Database\Table\Selection;
@@ -24,21 +23,31 @@ class ExplorerGenerator extends Generator
 
         $className = $this->context->fileManager->getExplorerName();
         $path = $this->context->fileManager->getExplorerPath();
-        $activeRowNamespace = $this->context->fileManager->getActiveRowNamespace();
 
         $this->log("Generating {$className} class.");
 
         $class = $file->addClass($className);
-        $class->setExtends(Explorer::class);
+        $class->setExtends($this->context->explorerClass ?? Explorer::class);
+
+        if ($this->context->explorerClass !== null) {
+            if ($this->writeFile($path, $file)) {
+                return [$path];
+            }
+
+            return [];
+        }
+
         $class->getNamespace()
             ?->addUse(ActiveRow::class)
             ?->addUse(Selection::class)
         ;
 
-        $const = $class->addConstant('ActiveRowNamespace', $activeRowNamespace)->setPrivate();
-        if ($this->context->targetPhpVersion->isFeatureSupported(PhpVersion::PHP_83)) {
-            $const->setType('string');
-        }
+        $class->addProperty('namespaces')
+            ->setValue([])
+            ->setType('array')
+            ->addComment('@var list<string>')
+            ->setVisibility('protected')
+        ;
 
         $class->addMethod('createActiveRow')
             ->setParameters([
@@ -60,6 +69,18 @@ class ExplorerGenerator extends Generator
             )
             ->addComment('@param array<string|int, mixed> $data')
             ->addComment('@phpstan-ignore missingType.generics')
+        ;
+
+        $class->addMethod('registerNamespace')
+            ->setParameters(
+                [(new Parameter('namespace'))->setType('string')],
+            )
+            ->setBody(<<<'PHP'
+            if (!in_array($namespace, $this->namespaces)){
+                $this->namespaces[] = $namespace;
+            }
+            PHP)
+            ->setReturnType('void')
         ;
 
         $class->addMethod('tableToClass')
@@ -104,18 +125,24 @@ class ExplorerGenerator extends Generator
             ->setReturnType('array')
             ->setBody(
                 <<<'PHP'
-                if (!str_contains($tableName, '.')){
-                    return [self::ActiveRowNamespace . '\\' . $this->snakeToPascalCase($tableName) . 'ActiveRow'];
+                $result = [];
+
+                foreach ($this->namespaces as $namespace)
+                {
+                    if (!str_contains($tableName, '.')) {
+                        $result[] = $namespace . '\\' . $this->snakeToPascalCase($tableName) . 'ActiveRow';
+                        continue;
+                    }
+
+                    $parts = explode('.', $tableName);
+                    $className = array_pop($parts);
+                    $classNameWithSchema = str_replace('.', '\\', $tableName);
+
+                    $result[] = $namespace . '\\' . $this->snakeToPascalCase($classNameWithSchema) . 'ActiveRow';
+                    $result[] = $namespace . '\\' . $this->snakeToPascalCase($className) . 'ActiveRow';
                 }
 
-                $parts = explode('.', $tableName);
-                $className = array_pop($parts);
-                $classNameWithSchema = str_replace('.', '\\', $tableName);
-
-                return [
-                    self::ActiveRowNamespace . '\\' . $this->snakeToPascalCase($classNameWithSchema) . 'ActiveRow',
-                    self::ActiveRowNamespace . '\\' . $this->snakeToPascalCase($className) . 'ActiveRow',
-                ];
+                return $result;
                 PHP
             )
             ->addComment('@return list<string>')

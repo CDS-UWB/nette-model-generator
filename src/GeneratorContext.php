@@ -13,6 +13,7 @@ final readonly class GeneratorContext
     /**
      * @param Closure(string, bool): string $varNameSanitizer global variable name sanitizer
      * @param class-string                  $managerClass     custom Manager class; when provided, the generated manager extends it and omits method generation
+     * @param class-string                  $explorerClass    custom Explorer class; when provided, the generated manager extends it and omits method generation
      */
     public function __construct(
         public Reflection $reflection,
@@ -23,6 +24,7 @@ final readonly class GeneratorContext
         public Closure|null $varNameSanitizer = null,
         public PhpVersion $targetPhpVersion = PhpVersion::PHP_84,
         public string|null $managerClass = null,
+        public string|null $explorerClass = null,
     ) {
     }
 }
