@@ -447,7 +447,9 @@ class TablesGeneratorTest extends GeneratorTestCase
                  */
                 private function castValues(array $data): array
                 {
-                    $data['date_column'] = (new \DateTimeImmutable((string) $this['date_column']));
+                    if (array_key_exists('date_column', $data)) {
+                        $data['date_column'] = (new \DateTimeImmutable((string) $this['date_column']));
+                    }
 
                     return $data;
                 }
@@ -575,7 +577,9 @@ class TablesGeneratorTest extends GeneratorTestCase
                  */
                 private function castValues(array $data): array
                 {
-                    $data['date_column'] = $this['date_column'] !== null ? new \ArrayObject([$this['date_column']]) : null;
+                    if (array_key_exists('date_column', $data)) {
+                        $data['date_column'] = $this['date_column'] !== null ? new \ArrayObject([$this['date_column']]) : null;
+                    }
 
                     return $data;
                 }
@@ -635,7 +639,9 @@ class TablesGeneratorTest extends GeneratorTestCase
                  */
                 private function castValues(array $data): array
                 {
-                    $data['date_column'] = $this['date_column'] !== null ? new \ArrayObject([$this['date_column']]) : null;
+                    if (array_key_exists('date_column', $data)) {
+                        $data['date_column'] = $this['date_column'] !== null ? new \ArrayObject([$this['date_column']]) : null;
+                    }
 
                     return $data;
                 }

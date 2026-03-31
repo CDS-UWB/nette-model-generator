@@ -961,7 +961,9 @@ trait CheckResults
                      */
                     private function castValues(array $data): array
                     {
-                        $data['date_value'] = $this['date_value'] !== null ? (new \DateTimeImmutable((string) $this['date_value'])) : null;
+                        if (array_key_exists('date_value', $data)) {
+                            $data['date_value'] = $this['date_value'] !== null ? (new \DateTimeImmutable((string) $this['date_value'])) : null;
+                        }
 
                         return $data;
                     }

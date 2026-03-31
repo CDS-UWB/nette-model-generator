@@ -92,7 +92,13 @@ class TablesGenerator extends Generator
             $name = $this->sanitizeVariable($column->name, isConstOrEnum: false);
 
             if ($customType?->castValueCallback !== null) {
-                $castValuesBody[] = "\$data['{$column->name}'] = " . ($customType->castValueCallback)($column) . ';';
+                $callback = ($customType->castValueCallback)($column);
+
+                $castValuesBody[] = <<<PHP
+                if (array_key_exists('{$column->name}', \$data)) {
+                    \$data['{$column->name}'] = {$callback};
+                }
+                PHP;
             }
 
             if ($this->context->targetPhpVersion->isFeatureSupported(PhpVersion::PHP_84)) {
