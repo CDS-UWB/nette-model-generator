@@ -54,7 +54,33 @@ class ManagerGenerator extends Generator
             ?->addUse(ActiveRow::class)
         ;
 
-        $constructor = $class->addMethod('__construct')
+        $constructor = $class->addMethod('__construct');
+
+        // We are extending existing manager class, so we do not have to generate all the methods.
+        if ($this->context->managerClass !== null) {
+            $class->setExtends($this->context->managerClass);
+            $class->addComment("\n@extend {$this->context->managerClass}<T>");
+
+            $constructor
+                ->setParameters([
+                    (new Parameter('explorer'))
+                        ->setType($explorerClass),
+                ])
+                ->setBody(<<<PHP
+            parent::__construct(\$explorer);
+
+            \$explorer->registerNamespace('{$activeRowNamespace}');
+            PHP)
+            ;
+
+            if ($this->writeFile($filePath, $file)) {
+                return [$filePath];
+            }
+
+            return [];
+        }
+
+        $constructor
             ->setParameters([
                 (new PromotedParameter('explorer'))
                     ->setType($explorerClass)
@@ -63,24 +89,6 @@ class ManagerGenerator extends Generator
             ])
             ->setBody("\$explorer->registerNamespace('{$activeRowNamespace}');")
         ;
-
-        // We are extending existing manager class, so we do not have to generate all the methods.
-        if ($this->context->managerClass !== null) {
-            $class->setExtends($this->context->managerClass);
-            $class->addComment("\n@extend {$this->context->managerClass}<T>");
-
-            $constructor->setBody(<<<PHP
-            parent::__construct(\$explorer);
-
-            \$explorer->registerNamespace('{$activeRowNamespace}');
-            PHP);
-
-            if ($this->writeFile($filePath, $file)) {
-                return [$filePath];
-            }
-
-            return [];
-        }
 
         $class->getNamespace()
             ?->addUse(Selection::class)

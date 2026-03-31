@@ -243,9 +243,8 @@ trait CheckResults
              */
             abstract class Manager extends {$managerClass}
             {
-                public function __construct(
-                    public readonly Explorer \$explorer,
-                ) {
+                public function __construct(Explorer \$explorer)
+                {
                     parent::__construct(\$explorer);
 
                     \$explorer->registerNamespace('{$activeRowNamespace}');

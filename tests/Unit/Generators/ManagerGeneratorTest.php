@@ -595,9 +595,8 @@ class ManagerGeneratorTest extends GeneratorTestCase
              */
             abstract class Manager extends \Some\Manager
             {
-                public function __construct(
-                    public readonly Explorer $explorer,
-                ) {
+                public function __construct(Explorer $explorer)
+                {
                     parent::__construct($explorer);
 
                     $explorer->registerNamespace('App\Model\Rows');
