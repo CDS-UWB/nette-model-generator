@@ -13,6 +13,7 @@ use Cds\NetteModelGenerator\ModelGenerator;
 use Cds\NetteModelGenerator\Psr4FileManager;
 use Cds\NetteModelGenerator\Reflections\MySqlReflection;
 use Nette\PhpGenerator\PsrPrinter;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Integration\Trait\CheckResults;
 use Tests\Integration\Trait\OutputDir;
@@ -50,10 +51,12 @@ class MySqlModelGeneratorTest extends MySqlDatabaseTestCase
         $this->checkManagersBase($dir);
         $this->checkRowsBase($dir);
         $this->checkExplorer($dir);
+        $this->checkDatabaseConventions($dir);
     }
 
     #[Test]
-    public function generateModelDefaultPhpLowerThan84(): void
+    #[DataProvider('providePhpVersionsLowerThan84')]
+    public function generateModelDefaultPhpLowerThan84(PhpVersion $phpVersion): void
     {
         $context = new GeneratorContext(
             reflection: new MySqlReflection($this->connection, $this->dbName),
@@ -64,7 +67,7 @@ class MySqlModelGeneratorTest extends MySqlDatabaseTestCase
             ),
             fileWriter: new FileWriter(),
             printer: new PsrPrinter(),
-            targetPhpVersion: PhpVersion::PHP_82,
+            targetPhpVersion: $phpVersion,
         );
 
         $generator = new ModelGenerator();
@@ -78,6 +81,22 @@ class MySqlModelGeneratorTest extends MySqlDatabaseTestCase
         $this->checkManagersBase($dir);
         $this->checkRowsBaseForPhpLowerThan84($dir);
         $this->checkExplorer($dir);
+        if ($phpVersion->value < PhpVersion::PHP_83->value) {
+            $this->checkDatabaseConventionsPhpLowerThan83($dir);
+        } else {
+            $this->checkDatabaseConventions($dir);
+        }
+    }
+
+    /**
+     * @return array<array{PhpVersion}>
+     */
+    public static function providePhpVersionsLowerThan84(): array
+    {
+        return [
+            [PhpVersion::PHP_82],
+            [PhpVersion::PHP_83],
+        ];
     }
 
     #[Test]
@@ -164,6 +183,31 @@ class MySqlModelGeneratorTest extends MySqlDatabaseTestCase
         $dir = implode(DIRECTORY_SEPARATOR, $this->outputDir);
 
         $this->checkExplorerExtends($dir, '\\Some\\Explorer');
+    }
+
+    #[Test]
+    public function generateModelWithCustomDbConventionsClass(): void
+    {
+        $context = new GeneratorContext(
+            reflection: new MySqlReflection($this->connection, $this->dbName),
+            fileManager: new Psr4FileManager(
+                rootDir: $this->outputDir,
+                namespace: ['App', 'Model'],
+                includeSchema: false,
+            ),
+            fileWriter: new FileWriter(),
+            printer: new PsrPrinter(),
+            // @phpstan-ignore argument.type
+            dbConventionsClass: '\\Some\\DatabaseConventions',
+        );
+
+        $generator = new ModelGenerator();
+
+        iterator_to_array($generator->runDefault($context), false);
+
+        $dir = implode(DIRECTORY_SEPARATOR, $this->outputDir);
+
+        $this->checkDatabaseConventionsExtends($dir, '\\Some\\DatabaseConventions');
     }
 
     /**

@@ -51,6 +51,7 @@ class PostgreSqlModelGeneratorTest extends PostgreSqlDatabaseTestCase
         $this->checkManagersBase($dir, $this->schema . '.');
         $this->checkRowsBase($dir);
         $this->checkExplorer($dir);
+        $this->checkDatabaseConventions($dir);
     }
 
     #[Test]
@@ -80,6 +81,11 @@ class PostgreSqlModelGeneratorTest extends PostgreSqlDatabaseTestCase
         $this->checkManagersBase($dir, $this->schema . '.');
         $this->checkRowsBaseForPhpLowerThan84($dir);
         $this->checkExplorer($dir);
+        if ($phpVersion->value < PhpVersion::PHP_83->value) {
+            $this->checkDatabaseConventionsPhpLowerThan83($dir);
+        } else {
+            $this->checkDatabaseConventions($dir);
+        }
     }
 
     /**
@@ -177,6 +183,31 @@ class PostgreSqlModelGeneratorTest extends PostgreSqlDatabaseTestCase
         $dir = implode(DIRECTORY_SEPARATOR, $this->outputDir);
 
         $this->checkExplorerExtends($dir, '\\Some\\Explorer');
+    }
+
+    #[Test]
+    public function generateModelWithCustomDbConventionsClass(): void
+    {
+        $context = new GeneratorContext(
+            reflection: new PostgreSqlReflection($this->connection, $this->dbName, schemas: [$this->schema]),
+            fileManager: new Psr4FileManager(
+                rootDir: $this->outputDir,
+                namespace: ['App', 'Model'],
+                includeSchema: false,
+            ),
+            fileWriter: new FileWriter(),
+            printer: new PsrPrinter(),
+            // @phpstan-ignore argument.type
+            dbConventionsClass: '\\Some\\DatabaseConventions',
+        );
+
+        $generator = new ModelGenerator();
+
+        iterator_to_array($generator->runDefault($context), false);
+
+        $dir = implode(DIRECTORY_SEPARATOR, $this->outputDir);
+
+        $this->checkDatabaseConventionsExtends($dir, '\\Some\\DatabaseConventions');
     }
 
     /**
