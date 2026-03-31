@@ -59,7 +59,7 @@ class ManagerGenerator extends Generator
         // We are extending existing manager class, so we do not have to generate all the methods.
         if ($this->context->managerClass !== null) {
             $class->setExtends($this->context->managerClass);
-            $class->addComment("\n@extend {$this->context->managerClass}<T>");
+            $class->addComment("\n@extends {$this->context->managerClass}<T>");
 
             $constructor
                 ->setParameters([

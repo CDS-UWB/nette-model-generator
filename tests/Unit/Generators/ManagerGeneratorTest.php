@@ -591,7 +591,7 @@ class ManagerGeneratorTest extends GeneratorTestCase
              *
              * @template T of ActiveRow
              *
-             * @extend \Some\Manager<T>
+             * @extends \Some\Manager<T>
              */
             abstract class Manager extends \Some\Manager
             {
