@@ -239,7 +239,7 @@ trait CheckResults
              *
              * @template T of ActiveRow
              *
-             * @extend {$managerClass}<T>
+             * @extends {$managerClass}<T>
              */
             abstract class Manager extends {$managerClass}
             {

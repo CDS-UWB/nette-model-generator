@@ -417,7 +417,7 @@ class ManagerGenerator extends Generator
                 (new Parameter('message'))->setType('string'),
                 (new Parameter('context'))->setType('mixed'),
             ])
-            ->setBody('throw new \RuntimeException($message . \'(\' . var_export($context, true) . \')\');')
+            ->setBody('throw new \RuntimeException($message . \' (\' . var_export($context, true) . \')\');')
             ->addComment("Throws an exception with a message and context information.\n")
             ->addComment("@throws \\RuntimeException\n")
             ->setVisibility('protected')

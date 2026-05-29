@@ -546,7 +546,7 @@ class ManagerGeneratorTest extends GeneratorTestCase
                  */
                 protected function throwStrict(string $message, mixed $context): never
                 {
-                    throw new \RuntimeException($message . '(' . var_export($context, true) . ')');
+                    throw new \RuntimeException($message . ' (' . var_export($context, true) . ')');
                 }
 
                 /**
