@@ -8,6 +8,7 @@ use Nette\Database\Table\ActiveRow;
 use Nette\Database\Table\Selection;
 use Nette\PhpGenerator\Parameter;
 use Nette\PhpGenerator\PromotedParameter;
+use Nette\Utils\ArrayHash;
 
 class ManagerGenerator extends Generator
 {
@@ -79,6 +80,8 @@ class ManagerGenerator extends Generator
 
             return [];
         }
+
+        $class->getNamespace()?->addUse(ArrayHash::class);
 
         $constructor
             ->setParameters([
@@ -267,11 +270,11 @@ class ManagerGenerator extends Generator
         $class->addMethod('insert')
             ->setReturnType(ActiveRow::class . '|array|int')
             ->setParameters([
-                (new Parameter('data'))->setType('array'),
+                (new Parameter('data'))->setType('array|' . ArrayHash::class),
             ])
             ->setBody('return $this->table()->insert($data);')
             ->addComment("Inserts a single row into the table and returns the ActiveRow if table has primary key,\nnumber of affected rows if table has no primary key,\nor original data as array if table has multi-column primary key without autoincrement.\n")
-            ->addComment("@param array<string, mixed> \$data \n")
+            ->addComment("@param array<string, mixed>|ArrayHash<mixed> \$data \n")
             ->addComment('@return T|array<string, mixed>|int')
         ;
 
@@ -290,11 +293,11 @@ class ManagerGenerator extends Generator
             ->setReturnType('int')
             ->setParameters([
                 (new Parameter('primary'))->setType('mixed'),
-                (new Parameter('data'))->setType('array'),
+                (new Parameter('data'))->setType('array|' . ArrayHash::class),
             ])
             ->setBody('return $this->find($primary)->update($data);')
             ->addComment("Updates a single row by primary key value.\n")
-            ->addComment('@param array<string, mixed> $data')
+            ->addComment('@param array<string, mixed>|ArrayHash<mixed> $data')
         ;
 
         $class->addMethod('updateWhere')

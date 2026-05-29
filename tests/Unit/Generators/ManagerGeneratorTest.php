@@ -207,6 +207,7 @@ class ManagerGeneratorTest extends GeneratorTestCase
             use Nette\Database\ResultSet;
             use Nette\Database\Table\ActiveRow;
             use Nette\Database\Table\Selection;
+            use Nette\Utils\ArrayHash;
 
             /**
              * The Manager class contains basic CRUD operations for the table.
@@ -383,11 +384,11 @@ class ManagerGeneratorTest extends GeneratorTestCase
                  * number of affected rows if table has no primary key,
                  * or original data as array if table has multi-column primary key without autoincrement.
                  *
-                 * @param array<string, mixed> $data
+                 * @param array<string, mixed>|ArrayHash<mixed> $data
                  *
                  * @return T|array<string, mixed>|int
                  */
-                public function insert(array $data): ActiveRow|array|int
+                public function insert(array|ArrayHash $data): ActiveRow|array|int
                 {
                     return $this->table()->insert($data);
                 }
@@ -409,9 +410,9 @@ class ManagerGeneratorTest extends GeneratorTestCase
                 /**
                  * Updates a single row by primary key value.
                  *
-                 * @param array<string, mixed> $data
+                 * @param array<string, mixed>|ArrayHash<mixed> $data
                  */
-                public function update(mixed $primary, array $data): int
+                public function update(mixed $primary, array|ArrayHash $data): int
                 {
                     return $this->find($primary)->update($data);
                 }
