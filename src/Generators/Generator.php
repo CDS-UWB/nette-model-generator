@@ -64,9 +64,11 @@ abstract class Generator
      * @param string $name          the original variable name to sanitize
      * @param bool   $isConstOrEnum whether the variable is a constant or enum case (these usually start with uppercase letter)
      */
-    protected function sanitizeVariable(string $name, bool $isConstOrEnum): string
+    protected function sanitizeVariable(string $name, bool $isConstOrEnum, Closure|null $sanitizer = null): string
     {
-        $sanitizer = $this->varNameSanitizer ?? $this->context->varNameSanitizer ?? Utils::sanitizeVariableName(...);
+        if ($sanitizer === null) {
+            $sanitizer = $this->varNameSanitizer ?? $this->context->varNameSanitizer ?? Utils::sanitizeVariableName(...);
+        }
 
         return $sanitizer($name, $isConstOrEnum);
     }

@@ -53,6 +53,7 @@ class ColumnsGeneratorTest extends GeneratorTestCase
                 /** float column comment */
                 public const FloatColumn = 'float_column';
                 public const ColumnWithoutComment = 'column_without_comment';
+                public const TableName = 'test_table';
 
             {$columnsFunction}
             }
@@ -110,6 +111,7 @@ class ColumnsGeneratorTest extends GeneratorTestCase
                 /** float column comment */
                 public const COL_FLOAT_COLUMN = 'float_column';
                 public const COL_COLUMN_WITHOUT_COMMENT = 'column_without_comment';
+                public const CTX_TABLE_NAME = 'test_table';
 
             {$columnsFunction}
             }

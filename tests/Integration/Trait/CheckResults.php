@@ -441,6 +441,7 @@ trait CheckResults
                 public const OptionalText = 'optional_text';
                 public const BoolValue = 'bool_value';
                 public const CreatedAt = 'created_at';
+                public const TableName = 'test_basic_columns';
 
                 /**
                  * Returns an array of column names.
@@ -463,6 +464,8 @@ trait CheckResults
 
         $actual = file_get_contents($filePath);
         $this->assertNotFalse($actual);
+
+        $actual = $this->replaceTableNameForPostgreSql($actual, 'test_basic_columns');
         $this->assertSame($php, $actual);
     }
 
@@ -491,6 +494,7 @@ trait CheckResults
                 public const TimeValue = 'time_value';
                 public const DatetimeValue = 'datetime_value';
                 public const TimestampValue = 'timestamp_value';
+                public const TableName = 'test_date_time_columns';
 
                 /**
                  * Returns an array of column names.
@@ -513,6 +517,8 @@ trait CheckResults
 
         $actual = file_get_contents($filePath);
         $this->assertNotFalse($actual);
+
+        $actual = $this->replaceTableNameForPostgreSql($actual, 'test_date_time_columns');
         $this->assertSame($php, $actual);
     }
 
@@ -539,6 +545,7 @@ trait CheckResults
                 public const Id = 'id';
                 public const Status = 'status';
                 public const Priority = 'priority';
+                public const TableName = 'test_enum_columns';
 
                 /**
                  * Returns an array of column names.
@@ -555,6 +562,8 @@ trait CheckResults
 
         $actual = file_get_contents($filePath);
         $this->assertNotFalse($actual);
+
+        $actual = $this->replaceTableNameForPostgreSql($actual, 'test_enum_columns');
         $this->assertSame($php, $actual);
     }
 
@@ -582,6 +591,7 @@ trait CheckResults
                 public const JsonValue = 'json_value';
                 public const BlobValue = 'blob_value';
                 public const LongTextValue = 'long_text_value';
+                public const TableName = 'test_json_and_binary_columns';
 
                 /**
                  * Returns an array of column names.
@@ -598,6 +608,8 @@ trait CheckResults
 
         $actual = file_get_contents($filePath);
         $this->assertNotFalse($actual);
+
+        $actual = $this->replaceTableNameForPostgreSql($actual, 'test_json_and_binary_columns');
         $this->assertSame($php, $actual);
     }
 
@@ -629,6 +641,7 @@ trait CheckResults
                 public const DecimalValue = 'decimal_value';
                 public const FloatValue = 'float_value';
                 public const DoubleValue = 'double_value';
+                public const TableName = 'test_number_columns';
 
                 /**
                  * Returns an array of column names.
@@ -654,6 +667,8 @@ trait CheckResults
 
         $actual = file_get_contents($filePath);
         $this->assertNotFalse($actual);
+
+        $actual = $this->replaceTableNameForPostgreSql($actual, 'test_number_columns');
         $this->assertSame($php, $actual);
     }
 
@@ -1437,5 +1452,10 @@ trait CheckResults
         $actual = file_get_contents($filePath);
         $this->assertNotFalse($actual);
         $this->assertSame($php, $actual);
+    }
+
+    private function replaceTableNameForPostgreSql(string $actual, string $tableName): string
+    {
+        return preg_replace("/'.*\\.{$tableName}'/", "'{$tableName}'", $actual) ?? $actual;
     }
 }

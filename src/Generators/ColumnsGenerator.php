@@ -42,6 +42,16 @@ class ColumnsGenerator extends Generator
             }
         }
 
+        // Add table name constant with context var name sanitizer as it is not a column
+        $class->addConstant(
+            name: $this->sanitizeVariable(
+                name: 'table_name',
+                isConstOrEnum: true,
+                sanitizer: $this->context->varNameSanitizer
+            ),
+            value: $table->getFullName(),
+        );
+
         $columnsArray = [];
         foreach ($columns as $column) {
             $columnsArray[$column->name] = $column->type;
