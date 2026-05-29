@@ -76,8 +76,8 @@ class ExplorerGenerator extends Generator
                 [(new Parameter('namespace'))->setType('string')],
             )
             ->setBody(<<<'PHP'
-            if (!in_array($namespace, $this->namespaces)){
-                $this->namespaces[] = $namespace;
+            if (!in_array($namespace, $this->namespaces)) {
+                array_unshift($this->namespaces, $namespace);
             }
             PHP)
             ->setReturnType('void')
