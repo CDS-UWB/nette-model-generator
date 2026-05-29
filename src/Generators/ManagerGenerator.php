@@ -117,6 +117,16 @@ class ManagerGenerator extends Generator
             ->addComment('@return Selection<T>')
         ;
 
+        $class->addMethod('getInsertId')
+            ->setReturnType('string')
+            ->setParameters([
+                (new Parameter('seqName'))->setType('string|null')->setDefaultValue(null),
+            ])
+            ->setBody('return $this->explorer->getInsertId($seqName);')
+            ->addComment("Returns the ID of the last inserted record.\n")
+            ->addComment('@param string|null $seqName Name of the sequence')
+        ;
+
         $class->addMethod('getAll')
             ->setReturnType(Selection::class)
             ->setBody('return $this->table();')

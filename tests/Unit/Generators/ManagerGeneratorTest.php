@@ -243,6 +243,16 @@ class ManagerGeneratorTest extends GeneratorTestCase
                 }
 
                 /**
+                 * Returns the ID of the last inserted record.
+                 *
+                 * @param string|null $seqName Name of the sequence
+                 */
+                public function getInsertId(string|null $seqName = null): string
+                {
+                    return $this->explorer->getInsertId($seqName);
+                }
+
+                /**
                  * Returns selection with all rows from the table.
                  *
                  * @return Selection<T>
