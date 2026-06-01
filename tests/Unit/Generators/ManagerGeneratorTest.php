@@ -7,6 +7,7 @@ use Cds\NetteModelGenerator\Generators\ManagerGenerator;
 use Iterator;
 use Nette\PhpGenerator\PhpFile;
 use Nette\PhpGenerator\Printer;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 
 /**
@@ -48,7 +49,8 @@ class ManagerGeneratorTest extends GeneratorTestCase
     }
 
     #[Test]
-    public function generateExtending(): void
+    #[DataProvider('provideManagerExtendingClasses')]
+    public function generateExtending(string $managerClass): void
     {
         $this->fileWriter->method('writeFile')->willReturnCallback(static function (string $path, PhpFile $content, Printer $printer) {
             static $invokedCount = 0;
@@ -75,10 +77,21 @@ class ManagerGeneratorTest extends GeneratorTestCase
         });
 
         // @phpstan-ignore argument.type
-        $generator = new ManagerGenerator($this->createMysqlGeneratorContext(managerClass: '\\Some\\Manager'));
+        $generator = new ManagerGenerator($this->createMysqlGeneratorContext(managerClass: $managerClass));
         $processedFiles = iterator_to_array($generator->generate());
 
         self::assertCount(4, $processedFiles);
+    }
+
+    /**
+     * @return array<array{0: string}>
+     */
+    public static function provideManagerExtendingClasses(): array
+    {
+        return [
+            ['\\Some\\Manager'],
+            ['Some\\Manager'],
+        ];
     }
 
     public function getTables(): Iterator

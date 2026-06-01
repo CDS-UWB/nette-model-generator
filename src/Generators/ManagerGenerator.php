@@ -60,7 +60,13 @@ class ManagerGenerator extends Generator
         // We are extending existing manager class, so we do not have to generate all the methods.
         if ($this->context->managerClass !== null) {
             $class->setExtends($this->context->managerClass);
-            $class->addComment("\n@extends {$this->context->managerClass}<T>");
+
+            // The @extends expects fully qualified class name -> add leading backslash if not present
+            $extendsClass = $this->context->managerClass;
+            if (!str_starts_with($extendsClass, '\\')) {
+                $extendsClass = '\\' . $extendsClass;
+            }
+            $class->addComment("\n@extends {$extendsClass}<T>");
 
             $constructor
                 ->setParameters([
