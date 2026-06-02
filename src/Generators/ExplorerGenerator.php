@@ -42,10 +42,10 @@ class ExplorerGenerator extends Generator
             ?->addUse(Selection::class)
         ;
 
-        $class->addProperty('namespaces')
+        $class->addProperty('tables')
             ->setValue([])
             ->setType('array')
-            ->addComment('@var list<string>')
+            ->addComment('@var array{string, class-string<ActiveRow>}|array{}')
             ->setVisibility('protected')
         ;
 
@@ -67,17 +67,20 @@ class ExplorerGenerator extends Generator
                 return $row;
                 PHP
             )
-            ->addComment('@param array<string|int, mixed> $data')
+            ->addComment("@param array<string|int, mixed> \$data\n")
             ->addComment('@phpstan-ignore missingType.generics')
         ;
 
-        $class->addMethod('registerNamespace')
+        $class->addMethod('registerTable')
             ->setParameters(
-                [(new Parameter('namespace'))->setType('string')],
+                [
+                    (new Parameter('table'))->setType('string'),
+                    (new Parameter('activeRowClass'))->setType('string'),
+                ],
             )
             ->setBody(<<<'PHP'
-            if (!in_array($namespace, $this->namespaces)) {
-                array_unshift($this->namespaces, $namespace);
+            if (!array_key_exists($table, $this->tables)) {
+                $this->tables[$table] = $activeRowClass;
             }
             PHP)
             ->setReturnType('void')
@@ -91,61 +94,9 @@ class ExplorerGenerator extends Generator
             ->setReturnType('string')
             ->setBody(
                 <<<'PHP'
-                $possibleClasses = $this->getPossibleClassNames($tableName);
-
-                foreach ($possibleClasses as $class) {
-                    if (class_exists($class)) {
-                        return $class;
-                    }
-                }
-                
-                return ActiveRow::class;
+                return $this->tables[$tableName] ?? ActiveRow::class;
                 PHP
             )
-        ;
-
-        $class->addMethod('snakeToPascalCase')
-            ->setParameters([
-                (new Parameter('input'))->setType('string'),
-            ])
-            ->setVisibility('protected')
-            ->setReturnType('string')
-            ->setBody(
-                <<<'PHP'
-                return str_replace('_', '', mb_convert_case($input, MB_CASE_TITLE, 'UTF-8'));
-                PHP
-            )
-        ;
-
-        $class->addMethod('getPossibleClassNames')
-            ->setParameters([
-                (new Parameter('tableName'))->setType('string'),
-            ])
-            ->setVisibility('protected')
-            ->setReturnType('array')
-            ->setBody(
-                <<<'PHP'
-                $result = [];
-
-                foreach ($this->namespaces as $namespace)
-                {
-                    if (!str_contains($tableName, '.')) {
-                        $result[] = $namespace . '\\' . $this->snakeToPascalCase($tableName) . 'ActiveRow';
-                        continue;
-                    }
-
-                    $parts = explode('.', $tableName);
-                    $className = array_pop($parts);
-                    $classNameWithSchema = str_replace('.', '\\', $tableName);
-
-                    $result[] = $namespace . '\\' . $this->snakeToPascalCase($classNameWithSchema) . 'ActiveRow';
-                    $result[] = $namespace . '\\' . $this->snakeToPascalCase($className) . 'ActiveRow';
-                }
-
-                return $result;
-                PHP
-            )
-            ->addComment('@return list<string>')
         ;
 
         if ($this->writeFile($path, $file)) {

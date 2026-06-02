@@ -68,17 +68,11 @@ class ManagerGenerator extends Generator
             }
             $class->addComment("\n@extends {$extendsClass}<T>");
 
-            $constructor
-                ->setParameters([
-                    (new Parameter('explorer'))
-                        ->setType($explorerClass),
-                ])
-                ->setBody(<<<PHP
-            parent::__construct(\$explorer);
-
-            \$explorer->registerNamespace('{$activeRowNamespace}');
-            PHP)
-            ;
+            $constructor->setParameters([
+                (new Parameter('explorer'))
+                    ->setType($explorerClass),
+            ]);
+            $constructor->setBody('parent::__construct($explorer);');
 
             if ($this->writeFile($filePath, $file)) {
                 return [$filePath];
@@ -96,7 +90,6 @@ class ManagerGenerator extends Generator
                     ->setVisibility('public')
                     ->setReadOnly(),
             ])
-            ->setBody("\$explorer->registerNamespace('{$activeRowNamespace}');")
         ;
 
         $class->getNamespace()
@@ -504,6 +497,7 @@ class ManagerGenerator extends Generator
         $filePath = $this->context->fileManager->getBaseManagerForTablePath($table);
         $baseManagerName = $this->context->fileManager->getBaseManagerName();
         $columnsClassName = $this->context->fileManager->getColumnsName($table);
+        $explorerClassName = $this->context->fileManager->getExplorerName();
 
         $this->log("\t\t- {$className}");
 
@@ -521,8 +515,21 @@ class ManagerGenerator extends Generator
             ?->addUse($rowType)
             ?->addUse($baseManagerName)
             ?->addUse($columnsClassName)
+            ?->addUse($explorerClassName)
         ;
         assert($namespace !== null);
+
+        $class->addMethod('__construct')
+            ->setParameters([
+                (new Parameter('explorer'))
+                    ->setType($explorerClassName),
+            ])
+            ->setBody(<<<PHP
+            parent::__construct(\$explorer);
+
+            \$this->explorer->registerTable(\$this->getTableName(), {$rowTypeWONamespace}::class);
+            PHP)
+        ;
 
         $class->addMethod('getTableName')
             ->setReturnType('string')

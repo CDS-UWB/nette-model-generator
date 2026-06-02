@@ -106,11 +106,12 @@ trait CheckResults
 
             class Explorer extends \Nette\Database\Explorer
             {
-                /** @var list<string> */
-                protected array $namespaces = [];
+                /** @var array{string, class-string<ActiveRow>}|array{} */
+                protected array $tables = [];
 
                 /**
                  * @param array<string|int, mixed> $data
+                 *
                  * @phpstan-ignore missingType.generics
                  */
                 public function createActiveRow(array $data, Selection $selection): ActiveRow
@@ -125,54 +126,16 @@ trait CheckResults
                     return $row;
                 }
 
-                public function registerNamespace(string $namespace): void
+                public function registerTable(string $table, string $activeRowClass): void
                 {
-                    if (!in_array($namespace, $this->namespaces)) {
-                        array_unshift($this->namespaces, $namespace);
+                    if (!array_key_exists($table, $this->tables)) {
+                        $this->tables[$table] = $activeRowClass;
                     }
                 }
 
                 protected function tableToClass(string $tableName): string
                 {
-                    $possibleClasses = $this->getPossibleClassNames($tableName);
-
-                    foreach ($possibleClasses as $class) {
-                        if (class_exists($class)) {
-                            return $class;
-                        }
-                    }
-
-                    return ActiveRow::class;
-                }
-
-                protected function snakeToPascalCase(string $input): string
-                {
-                    return str_replace('_', '', mb_convert_case($input, MB_CASE_TITLE, 'UTF-8'));
-                }
-
-                /**
-                 * @return list<string>
-                 */
-                protected function getPossibleClassNames(string $tableName): array
-                {
-                    $result = [];
-
-                    foreach ($this->namespaces as $namespace)
-                    {
-                        if (!str_contains($tableName, '.')) {
-                            $result[] = $namespace . '\\' . $this->snakeToPascalCase($tableName) . 'ActiveRow';
-                            continue;
-                        }
-
-                        $parts = explode('.', $tableName);
-                        $className = array_pop($parts);
-                        $classNameWithSchema = str_replace('.', '\\', $tableName);
-
-                        $result[] = $namespace . '\\' . $this->snakeToPascalCase($classNameWithSchema) . 'ActiveRow';
-                        $result[] = $namespace . '\\' . $this->snakeToPascalCase($className) . 'ActiveRow';
-                    }
-
-                    return $result;
+                    return $this->tables[$tableName] ?? ActiveRow::class;
                 }
             }
 
@@ -246,8 +209,6 @@ trait CheckResults
                 public function __construct(Explorer \$explorer)
                 {
                     parent::__construct(\$explorer);
-
-                    \$explorer->registerNamespace('{$activeRowNamespace}');
                 }
             }
 
@@ -746,6 +707,7 @@ trait CheckResults
             namespace App\\Model\\Generated\\Managers;
 
             use App\\Model\\Generated\\Columns\\TestBasicColumns;
+            use App\\Model\\Generated\\Explorer;
             use App\\Model\\Managers\\ManagerBase;
             use App\\Model\\Rows\\TestBasicColumnsActiveRow;
 
@@ -754,6 +716,13 @@ trait CheckResults
              */
             abstract class TestBasicColumnsManagerBase extends ManagerBase
             {
+                public function __construct(Explorer \$explorer)
+                {
+                    parent::__construct(\$explorer);
+
+                    \$this->explorer->registerTable(\$this->getTableName(), TestBasicColumnsActiveRow::class);
+                }
+
                 /**
                  * {@inheritDoc}
                  */
@@ -794,6 +763,7 @@ trait CheckResults
                 namespace App\\Model\\Generated\\Managers;
 
                 use App\\Model\\Generated\\Columns\\TestDateTimeColumns;
+                use App\\Model\\Generated\\Explorer;
                 use App\\Model\\Managers\\ManagerBase;
                 use App\\Model\\Rows\\TestDateTimeColumnsActiveRow;
     
@@ -802,6 +772,13 @@ trait CheckResults
                  */
                 abstract class TestDateTimeColumnsManagerBase extends ManagerBase
                 {
+                    public function __construct(Explorer \$explorer)
+                    {
+                        parent::__construct(\$explorer);
+
+                        \$this->explorer->registerTable(\$this->getTableName(), TestDateTimeColumnsActiveRow::class);
+                    }
+
                     /**
                      * {@inheritDoc}
                      */
@@ -842,6 +819,7 @@ trait CheckResults
                 namespace App\\Model\\Generated\\Managers;
     
                 use App\\Model\\Generated\\Columns\\TestEnumColumns;
+                use App\\Model\\Generated\\Explorer;
                 use App\\Model\\Managers\\ManagerBase;
                 use App\\Model\\Rows\\TestEnumColumnsActiveRow;
     
@@ -850,6 +828,13 @@ trait CheckResults
                  */
                 abstract class TestEnumColumnsManagerBase extends ManagerBase
                 {
+                    public function __construct(Explorer \$explorer)
+                    {
+                        parent::__construct(\$explorer);
+
+                        \$this->explorer->registerTable(\$this->getTableName(), TestEnumColumnsActiveRow::class);
+                    }
+
                     /**
                      * {@inheritDoc}
                      */
@@ -890,6 +875,7 @@ trait CheckResults
             namespace App\\Model\\Generated\\Managers;
 
             use App\\Model\\Generated\\Columns\\TestJsonAndBinaryColumns;
+            use App\\Model\\Generated\\Explorer;
             use App\\Model\\Managers\\ManagerBase;
             use App\\Model\\Rows\\TestJsonAndBinaryColumnsActiveRow;
 
@@ -898,6 +884,13 @@ trait CheckResults
              */
             abstract class TestJsonAndBinaryColumnsManagerBase extends ManagerBase
             {
+                public function __construct(Explorer \$explorer)
+                {
+                    parent::__construct(\$explorer);
+
+                    \$this->explorer->registerTable(\$this->getTableName(), TestJsonAndBinaryColumnsActiveRow::class);
+                }
+
                 /**
                  * {@inheritDoc}
                  */
@@ -938,6 +931,7 @@ trait CheckResults
             namespace App\\Model\\Generated\\Managers;
 
             use App\\Model\\Generated\\Columns\\TestNumberColumns;
+            use App\\Model\\Generated\\Explorer;
             use App\\Model\\Managers\\ManagerBase;
             use App\\Model\\Rows\\TestNumberColumnsActiveRow;
 
@@ -946,6 +940,13 @@ trait CheckResults
              */
             abstract class TestNumberColumnsManagerBase extends ManagerBase
             {
+                public function __construct(Explorer \$explorer)
+                {
+                    parent::__construct(\$explorer);
+
+                    \$this->explorer->registerTable(\$this->getTableName(), TestNumberColumnsActiveRow::class);
+                }
+
                 /**
                  * {@inheritDoc}
                  */

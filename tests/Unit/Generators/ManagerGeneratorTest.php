@@ -143,6 +143,7 @@ class ManagerGeneratorTest extends GeneratorTestCase
             namespace App\Model\Generated\Managers;
 
             use App\Model\Generated\Columns\TestTable;
+            use App\Model\Generated\Explorer;
             use App\Model\Managers\ManagerBase;
             use App\Model\Rows\TestTableActiveRow;
 
@@ -151,6 +152,13 @@ class ManagerGeneratorTest extends GeneratorTestCase
              */
             abstract class TestTableManagerBase extends ManagerBase
             {
+                public function __construct(Explorer $explorer)
+                {
+                    parent::__construct($explorer);
+
+                    $this->explorer->registerTable($this->getTableName(), TestTableActiveRow::class);
+                }
+
                 /**
                  * {@inheritDoc}
                  */
@@ -232,7 +240,6 @@ class ManagerGeneratorTest extends GeneratorTestCase
                 public function __construct(
                     public readonly Explorer $explorer,
                 ) {
-                    $explorer->registerNamespace('App\Model\Rows');
                 }
 
                 /**
@@ -622,8 +629,6 @@ class ManagerGeneratorTest extends GeneratorTestCase
                 public function __construct(Explorer $explorer)
                 {
                     parent::__construct($explorer);
-
-                    $explorer->registerNamespace('App\Model\Rows');
                 }
             }
 
