@@ -68,7 +68,6 @@ class ExplorerGenerator extends Generator
                 PHP
             )
             ->addComment("@param array<string|int, mixed> \$data\n")
-            ->addComment('@phpstan-ignore missingType.generics')
         ;
 
         $class->addMethod('registerTable')
