@@ -111,8 +111,6 @@ trait CheckResults
 
                 /**
                  * @param array<string|int, mixed> $data
-                 *
-                 * @phpstan-ignore missingType.generics
                  */
                 public function createActiveRow(array $data, Selection $selection): ActiveRow
                 {
